@@ -1,0 +1,23 @@
+[
+  {
+    "code": "FRESH20",
+    "discountPercent": 20,
+    "maxDiscount": 100,
+    "minOrderValue": 199,
+    "description": "Get 20% OFF up to ₹100 on orders above ₹199"
+  },
+  {
+    "code": "GROCERY50",
+    "discountPercent": 15,
+    "maxDiscount": 150,
+    "minOrderValue": 499,
+    "description": "Flat 15% OFF up to ₹150 on mega grocery orders above ₹499"
+  },
+  {
+    "code": "WELCOME10",
+    "discountPercent": 10,
+    "maxDiscount": 50,
+    "minOrderValue": 99,
+    "description": "Welcome 10% OFF on your grocery order"
+  }
+]

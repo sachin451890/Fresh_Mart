@@ -1,0 +1,71 @@
+[
+  {
+    "orderId": "FM-ORD-341626",
+    "createdAt": "2026-08-26T03:24:53.834Z",
+    "customer": {
+      "name": "Amit Verma",
+      "email": "guest@freshmart.com",
+      "phone": "9811223344",
+      "address": "120 Green Park",
+      "pincode": "560001",
+      "city": "Bengaluru"
+    },
+    "deliverySlot": "Express in 30 Mins",
+    "paymentMethod": "UPI",
+    "items": [
+      {
+        "product": {
+          "id": "prod_1",
+          "name": "Fresh Organic Bananas",
+          "category": "Fruits & Vegetables",
+          "price": 49,
+          "originalPrice": 65,
+          "unit": "1 kg (approx 6-8 pcs)",
+          "image": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&auto=format&fit=crop&q=80",
+          "rating": 4.8,
+          "reviewsCount": 184,
+          "inStock": true,
+          "stock": 50,
+          "badge": "Organic",
+          "description": "Naturally sweet, potassium-rich fresh bananas harvested from chemical-free organic farms."
+        },
+        "quantity": 2,
+        "itemTotal": 98
+      },
+      {
+        "product": {
+          "id": "prod_15",
+          "name": "Cold-Pressed Extra Virgin Olive Oil",
+          "category": "Pantry Staples",
+          "price": 549,
+          "originalPrice": 699,
+          "unit": "500ml Tin",
+          "image": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80",
+          "rating": 4.9,
+          "reviewsCount": 195,
+          "inStock": true,
+          "stock": 25,
+          "badge": "First Cold Press",
+          "description": "Spanish Arbequina olives pressed within 24 hours of harvest for a fruity and peppery finish."
+        },
+        "quantity": 1,
+        "itemTotal": 549
+      }
+    ],
+    "appliedCoupon": {
+      "code": "FRESH20",
+      "discountPercent": 20,
+      "discountAmount": 100,
+      "description": "Get 20% OFF up to ₹100 on orders above ₹199"
+    },
+    "pricing": {
+      "subtotal": 647,
+      "discount": 100,
+      "deliveryFee": 0,
+      "tax": 32.35,
+      "finalTotal": 579.35
+    },
+    "status": "Confirmed - Packing at Local Hub",
+    "estimatedDelivery": "30-45 Minutes"
+  }
+]

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreshMart | India's Fastest Hyperlocal Grocery Delivery in 10-15 Mins</title>
+  <meta name="description" content="Get farm-fresh vegetables, fruits, dairy, cold drinks, munchies and daily essentials delivered to your doorstep in 10-15 minutes.">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Top Announcement Bar -->
+  <div class="top-announcement">
+    <div class="announcement-content">
+      <span>🎉 <strong>SPECIAL OFFER:</strong> Use code <strong class="badge-code" onclick="quickApplyCoupon('FRESH20')">FRESH20</strong> for 20% OFF on your first order!</span>
+      <span class="announcement-perk">⚡ Free express delivery on all orders over ₹299</span>
+    </div>
+  </div>
+
+  <!-- 1. Main Navigation Header -->
+  <header class="main-header">
+    <div class="container header-container">
+      <!-- Logo (Left) -->
+      <div class="logo-area" onclick="resetFilters()">
+        <div class="logo-icon">🥑</div>
+        <div class="logo-text">
+          <h1>Fresh<span>Mart</span></h1>
+          <p class="tagline">Supermarket in 10-15 Mins</p>
+        </div>
+      </div>
+
+      <!-- Location Selector with "Delivery in 10-15 mins" Badge -->
+      <div class="delivery-location" id="locationSelectorBtn" onclick="openLocationModal()" title="Click to change location">
+        <span class="location-icon">📍</span>
+        <div class="location-details">
+          <div class="loc-badge-row">
+            <span class="delivery-speed-badge">⚡ 10-15 MINS</span>
+            <span class="loc-label">Deliver to ▾</span>
+          </div>
+          <span class="loc-address" id="currentLocationText">Koramangala, Bengaluru (560034)</span>
+        </div>
+      </div>
+
+      <!-- Search Bar (Center/Right) -->
+      <div class="search-bar-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search for 'milk', 'chips', 'potatoes', 'chocolate'..." autocomplete="off">
+        <button id="clearSearchBtn" class="clear-search-btn" style="display: none;">✕</button>
+      </div>
+
+      <!-- Header Actions: Orders, Login/Profile, Cart -->
+      <div class="header-actions">
+        <button id="profileBtn" class="action-btn" onclick="openProfileModal()" title="Login / My Account">
+          <span class="btn-icon">👤</span>
+          <span class="btn-label" id="profileBtnLabel">Login</span>
+        </button>
+
+        <button id="ordersBtn" class="action-btn" onclick="openOrdersHistoryModal()" title="View Past Orders">
+          <span class="btn-icon">📦</span>
+          <span class="btn-label">My Orders</span>
+        </button>
+
+        <button id="cartBtn" class="cart-trigger-btn">
+          <div class="cart-icon-wrap">
+            <span>🛒</span>
+            <span id="cartCountBadge" class="cart-badge">0</span>
+          </div>
+          <div class="cart-text-wrap">
+            <span class="cart-label">My Cart</span>
+            <span id="cartHeaderTotal" class="cart-total-amount">₹0</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. Prominent Delivery Time Banner -->
+  <div class="delivery-time-banner">
+    <div class="container delivery-banner-inner">
+      <div class="delivery-banner-left">
+        <span class="delivery-pulsing-dot"></span>
+        <span class="delivery-timer-tag">⚡ 10-15 MIN DELIVERY</span>
+        <span class="delivery-tagline-text">Live dark store near you: <strong>Koramangala 4th Block Hub</strong></span>
+      </div>
+      <div class="delivery-banner-right">
+        <span class="delivery-perk-chip">🛡️ 100% Quality Checked</span>
+        <span class="delivery-perk-chip">💳 Contactless Pay</span>
+        <span class="delivery-perk-chip">🚀 No Minimum Order</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Layout -->
+  <main class="main-content">
+    <!-- 4. Hero / Rotating Banner Carousel -->
+    <section class="hero-carousel-section">
+      <div class="container">
+        <div class="carousel-container" id="heroCarousel">
+          <!-- Slide 1 -->
+          <div class="carousel-slide active" style="background: linear-gradient(135deg, #0c4a25 0%, #106b38 60%, #1db954 100%);">
+            <div class="slide-content">
+              <span class="slide-pill">⚡ Superfast 10-15 Min Delivery</span>
+              <h2>Daily Groceries & Staples <br><span class="slide-highlight">Up to 50% OFF</span></h2>
+              <p>Fresh milk, atta, veggies, juices & snacks delivered straight to your kitchen.</p>
+              <div class="slide-actions">
+                <button class="btn btn-primary" onclick="scrollToSection('productsSection')">Shop Now 🛍️</button>
+                <button class="btn btn-outline" onclick="quickApplyCoupon('FRESH20')">Use Code: <strong>FRESH20</strong></button>
+              </div>
+            </div>
+            <div class="slide-image">
+              <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80" alt="Fresh Groceries">
+            </div>
+          </div>
+
+          <!-- Slide 2 -->
+          <div class="carousel-slide" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #38bdf8 100%);">
+            <div class="slide-content">
+              <span class="slide-pill">🥦 100% Farm Fresh Harvest</span>
+              <h2>Farm-Fresh Vegetables <br><span class="slide-highlight">At Mandi Rates</span></h2>
+              <p>Direct from verified organic farms within 6 hours of harvesting.</p>
+              <div class="slide-actions">
+                <button class="btn btn-primary" onclick="setCategoryFilter('Vegetables & Fruits')">Explore Veggies 🥦</button>
+              </div>
+            </div>
+            <div class="slide-image">
+              <img src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800&auto=format&fit=crop&q=80" alt="Fresh Fruits and Veggies">
+            </div>
+          </div>
+
+          <!-- Slide 3 -->
+          <div class="carousel-slide" style="background: linear-gradient(135deg, #7c2d12 0%, #ea580c 60%, #fbbf24 100%);">
+            <div class="slide-content">
+              <span class="slide-pill">🍟 Munchies & Party Treats</span>
+              <h2>Chocolates, Chips & Ice Creams <br><span class="slide-highlight">Flat ₹50 OFF</span></h2>
+              <p>Instant cravings satisfied in 10 minutes. Use coupon code GROCERY50.</p>
+              <div class="slide-actions">
+                <button class="btn btn-primary" onclick="setCategoryFilter('Munchies / Snacks')">Grab Snacks 🥨</button>
+                <button class="btn btn-outline" onclick="quickApplyCoupon('GROCERY50')">Code: <strong>GROCERY50</strong></button>
+              </div>
+            </div>
+            <div class="slide-image">
+              <img src="https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=800&auto=format&fit=crop&q=80" alt="Snacks and Munchies">
+            </div>
+          </div>
+
+          <!-- Carousel Controls -->
+          <button class="carousel-btn prev-btn" onclick="prevCarouselSlide()">‹</button>
+          <button class="carousel-btn next-btn" onclick="nextCarouselSlide()">›</button>
+
+          <!-- Carousel Indicators -->
+          <div class="carousel-indicators">
+            <span class="indicator active" onclick="goToCarouselSlide(0)"></span>
+            <span class="indicator" onclick="goToCarouselSlide(1)"></span>
+            <span class="indicator" onclick="goToCarouselSlide(2)"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Horizontal Category Navigation Bar -->
+    <section class="categories-section">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Explore Categories</h3>
+            <p class="section-subtitle">Click to filter hand-picked items for your daily home needs</p>
+          </div>
+          <div class="category-scroll-controls">
+            <button class="scroll-arrow-btn" onclick="scrollCategories(-1)" title="Scroll Left">‹</button>
+            <button class="scroll-arrow-btn" onclick="scrollCategories(1)" title="Scroll Right">›</button>
+          </div>
+        </div>
+
+        <div class="categories-scroll-wrapper" id="categoriesContainer">
+          <!-- Categories pills dynamically rendered -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Homepage Category Grid Section -->
+    <section class="category-grid-section">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Shop by Popular Category</h3>
+            <p class="section-subtitle">Browse all supermarket aisles with one tap</p>
+          </div>
+        </div>
+        <div class="category-cards-grid" id="homepageCategoryGrid">
+          <!-- Dynamically populated 21 category cards -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Product Listing Page / Catalog Section -->
+    <section class="products-section" id="productsSection">
+      <div class="container">
+        <!-- Subcategories Filter Chips -->
+        <div class="subcategories-filter-bar" id="subcategoriesBar" style="display: none;">
+          <span class="subcat-label">Filter:</span>
+          <div class="subcat-chips-wrapper" id="subcategoriesList"></div>
+        </div>
+
+        <!-- Filter and Sort Toolbar -->
+        <div class="catalog-toolbar">
+          <div class="catalog-info">
+            <h3 id="catalogHeading">All Fresh Products</h3>
+            <span id="productCountBadge" class="items-count-pill">Showing 82 items</span>
+          </div>
+
+          <div class="toolbar-controls">
+            <div class="sort-wrapper">
+              <label for="sortSelect">Sort By:</label>
+              <select id="sortSelect" class="custom-select" onchange="handleSortChange(this.value)">
+                <option value="featured">✨ Featured Items</option>
+                <option value="price-low">💵 Price: Low to High</option>
+                <option value="price-high">💎 Price: High to Low</option>
+                <option value="rating">⭐ Customer Rating</option>
+                <option value="discount">🔥 Highest Discount</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Filter Badge Bar -->
+        <div id="activeFilterBar" class="active-filter-bar" style="display: none;">
+          <span>Active Filter: <strong id="activeFilterText"></strong></span>
+          <button class="btn-clear-filter" onclick="resetFilters()">Clear Filter ✕</button>
+        </div>
+
+        <!-- Product Grid (with Add Button and Quantity Stepper) -->
+        <div id="productGrid" class="product-grid">
+          <!-- Dynamic product cards rendered with API -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 7. Cart Drawer (Right-side slide panel) -->
+  <div id="cartOverlay" class="cart-overlay"></div>
+  <aside id="cartDrawer" class="cart-drawer">
+    <div class="cart-header">
+      <div class="cart-header-title">
+        <h3>My Cart</h3>
+        <span id="cartItemCountHeader" class="badge-item-count">0 items</span>
+      </div>
+      <button id="closeCartBtn" class="close-cart-btn" onclick="toggleCartDrawer(false)">✕</button>
+    </div>
+
+    <!-- Free Delivery Progress Bar -->
+    <div class="free-delivery-tracker">
+      <div class="tracker-text">
+        <span id="freeDeliveryMessage">⚡ Add ₹299 for FREE Delivery</span>
+        <strong id="freeDeliveryStatus">₹0 / ₹299</strong>
+      </div>
+      <div class="tracker-bar">
+        <div id="freeDeliveryProgress" class="tracker-fill" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <!-- Cart Items Scroll List -->
+    <div class="cart-body" id="cartItemsContainer">
+      <!-- Dynamically populated cart items -->
+    </div>
+
+    <!-- Promo Coupon Box -->
+    <div class="coupon-section">
+      <div class="coupon-input-group">
+        <input type="text" id="couponInput" placeholder="Enter promo code (e.g. FRESH20)" uppercase>
+        <button id="applyCouponBtn" class="btn btn-secondary btn-apply-coupon" onclick="applyCoupon()">Apply</button>
+      </div>
+      <div class="coupon-chips">
+        <span class="coupon-tag" onclick="quickApplyCoupon('FRESH20')">🏷️ FRESH20 (20% OFF)</span>
+        <span class="coupon-tag" onclick="quickApplyCoupon('GROCERY50')">🏷️ GROCERY50 (₹50 OFF)</span>
+      </div>
+      <div id="couponStatusMessage" class="coupon-status"></div>
+    </div>
+
+    <!-- Cart Bill Breakdown -->
+    <div class="cart-footer">
+      <div class="bill-summary">
+        <h5>Bill Details</h5>
+        <div class="bill-row">
+          <span>Items Total</span>
+          <span id="billSubtotal">₹0</span>
+        </div>
+        <div class="bill-row discount-row" id="billDiscountRow" style="display: none;">
+          <span>Promo Discount</span>
+          <span id="billDiscount">-₹0</span>
+        </div>
+        <div class="bill-row">
+          <span>Delivery Partner Fee</span>
+          <span id="billDeliveryFee">₹25</span>
+        </div>
+        <div class="bill-row">
+          <span>Taxes & Handling</span>
+          <span id="billTax">₹0</span>
+        </div>
+        <div class="bill-divider"></div>
+        <div class="bill-row bill-grand-total">
+          <div>
+            <strong>To Pay</strong>
+            <span class="tax-note">Inclusive of all taxes</span>
+          </div>
+          <strong id="billGrandTotal" class="grand-total-amount">₹0</strong>
+        </div>
+      </div>
+
+      <button id="checkoutBtn" class="btn btn-primary btn-block btn-checkout" onclick="openCheckoutModal()">
+        <span>Proceed to Checkout</span>
+        <span id="checkoutBtnPrice">₹0 →</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Location Picker Modal -->
+  <div id="locationModalOverlay" class="modal-overlay">
+    <div class="modal-dialog location-dialog">
+      <div class="modal-header">
+        <div>
+          <h3>Choose Delivery Location</h3>
+          <p class="modal-subtitle">Superfast 10-15 minute grocery delivery</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeLocationModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="location-search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="locationSearchInput" placeholder="Search area, apartment or pincode...">
+        </div>
+        <div class="current-gps-btn" onclick="detectGPSLocation()">
+          <span class="gps-icon">🎯</span>
+          <div>
+            <strong>Use Current Location</strong>
+            <small>Detect via browser GPS</small>
+          </div>
+        </div>
+        <div class="saved-locations-section">
+          <h5>Popular Serviceable Hubs</h5>
+          <div class="popular-locations-grid">
+            <div class="popular-loc-card active" onclick="selectLocation('Koramangala, Bengaluru (560034)')">
+              <strong>📍 Koramangala</strong>
+              <small>Bengaluru • 10-12 Mins</small>
+            </div>
+            <div class="popular-loc-card" onclick="selectLocation('Indiranagar, Bengaluru (560038)')">
+              <strong>📍 Indiranagar</strong>
+              <small>Bengaluru • 12-15 Mins</small>
+            </div>
+            <div class="popular-loc-card" onclick="selectLocation('HSR Layout, Bengaluru (560102)')">
+              <strong>📍 HSR Layout</strong>
+              <small>Bengaluru • 10-14 Mins</small>
+            </div>
+            <div class="popular-loc-card" onclick="selectLocation('Whitefield, Bengaluru (560066)')">
+              <strong>📍 Whitefield</strong>
+              <small>Bengaluru • 15 Mins</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login / Profile Modal -->
+  <div id="profileModalOverlay" class="modal-overlay">
+    <div class="modal-dialog profile-dialog">
+      <div class="modal-header">
+        <div>
+          <h3 id="profileModalTitle">My Account</h3>
+          <p class="modal-subtitle">Manage orders, addresses and profile</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeProfileModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="loginSection">
+          <div class="login-banner">
+            <span class="login-badge-icon">⚡</span>
+            <h4>Quick Login with Mobile Number</h4>
+            <p>Receive order updates, invoice receipts & exclusive discounts</p>
+          </div>
+          <form id="quickLoginForm" onsubmit="handleQuickLogin(event)">
+            <div class="form-group">
+              <label for="loginPhone">Mobile Number</label>
+              <div class="phone-input-wrap">
+                <span class="country-code">+91</span>
+                <input type="tel" id="loginPhone" placeholder="Enter 10-digit number" required pattern="[0-9]{10}" maxlength="10">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="loginName">Your Name</label>
+              <input type="text" id="loginName" placeholder="e.g. Rahul Sharma" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Continue to FreshMart</button>
+          </form>
+        </div>
+        <div id="loggedInSection" style="display: none;">
+          <div class="user-profile-card">
+            <div class="user-avatar">👤</div>
+            <div class="user-details">
+              <h4 id="displayUserName">Rahul Sharma</h4>
+              <p id="displayUserPhone">+91 9876543210</p>
+              <span class="member-tag">⭐ FreshMart Prime Member</span>
+            </div>
+          </div>
+          <div class="profile-menu-links">
+            <div class="menu-link-item" onclick="closeProfileModal(); openOrdersHistoryModal();">
+              <span>📦 Past Orders & Invoices</span>
+              <span>›</span>
+            </div>
+            <div class="menu-link-item" onclick="closeProfileModal(); openLocationModal();">
+              <span>📍 Saved Delivery Addresses</span>
+              <span>›</span>
+            </div>
+            <div class="menu-link-item" onclick="quickApplyCoupon('FRESH20'); closeProfileModal();">
+              <span>🏷️ Active Coupons & Offers</span>
+              <span>›</span>
+            </div>
+            <button class="btn btn-outline btn-block btn-logout" onclick="handleLogout()">Log Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div id="checkoutOverlay" class="modal-overlay">
+    <div class="modal-dialog checkout-dialog">
+      <div class="modal-header">
+        <div>
+          <h3>Checkout & Delivery Address</h3>
+          <p class="modal-subtitle">Delivered in 10-15 minutes by FreshMart Express</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeCheckoutModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="checkoutForm" onsubmit="handlePlaceOrder(event)">
+          <!-- Customer Details -->
+          <div class="form-section">
+            <h5 class="form-section-title">1. Contact Information</h5>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="customerName">Full Name *</label>
+                <input type="text" id="customerName" required placeholder="e.g. Rahul Sharma">
+              </div>
+              <div class="form-group">
+                <label for="customerPhone">Mobile Number *</label>
+                <input type="tel" id="customerPhone" required placeholder="10-digit mobile" pattern="[0-9]{10}" maxlength="10">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="customerEmail">Email Address (for receipt)</label>
+              <input type="email" id="customerEmail" placeholder="rahul@example.com">
+            </div>
+          </div>
+
+          <!-- Address Details -->
+          <div class="form-section">
+            <h5 class="form-section-title">2. Delivery Address</h5>
+            <div class="form-group">
+              <label for="deliveryAddress">Flat / House No., Building Name *</label>
+              <input type="text" id="deliveryAddress" required placeholder="Flat 402, Greenfield Residency">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="deliveryArea">Street / Area / Landmark *</label>
+                <input type="text" id="deliveryArea" required placeholder="4th Block, Koramangala">
+              </div>
+              <div class="form-group">
+                <label for="deliveryPincode">Pincode *</label>
+                <input type="text" id="deliveryPincode" required placeholder="560034" maxlength="6">
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Options -->
+          <div class="form-section">
+            <h5 class="form-section-title">3. Select Payment Method</h5>
+            <div class="payment-options-grid">
+              <label class="payment-card active">
+                <input type="radio" name="paymentMethod" value="Instant UPI" checked>
+                <div class="payment-card-content">
+                  <span class="payment-icon">📱</span>
+                  <div>
+                    <strong>Instant UPI</strong>
+                    <small>Google Pay, PhonePe, Paytm, BHIM</small>
+                  </div>
+                </div>
+              </label>
+              <label class="payment-card">
+                <input type="radio" name="paymentMethod" value="Cash on Delivery">
+                <div class="payment-card-content">
+                  <span class="payment-icon">💵</span>
+                  <div>
+                    <strong>Cash / UPI on Delivery</strong>
+                    <small>Pay at doorstep after inspecting goods</small>
+                  </div>
+                </div>
+              </label>
+              <label class="payment-card">
+                <input type="radio" name="paymentMethod" value="Credit / Debit Card">
+                <div class="payment-card-content">
+                  <span class="payment-icon">💳</span>
+                  <div>
+                    <strong>Debit / Credit Card</strong>
+                    <small>Visa, MasterCard, RuPay cards</small>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Order Summary in Modal -->
+          <div class="modal-order-summary">
+            <div class="summary-line">
+              <span>Total Payable Amount:</span>
+              <span id="modalPayableTotal" class="summary-amount">₹0</span>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeCheckoutModal()">Back to Cart</button>
+            <button type="submit" id="confirmOrderBtn" class="btn btn-primary btn-confirm-order">
+              <span>Confirm & Place Order</span>
+              <span>🔒 100% Secure</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Success Confirmation Modal -->
+  <div id="orderSuccessOverlay" class="modal-overlay">
+    <div class="modal-dialog success-dialog">
+      <div class="success-header">
+        <div class="animated-checkmark">
+          <div class="check-icon">
+            <span class="icon-line line-tip"></span>
+            <span class="icon-line line-long"></span>
+            <div class="icon-circle"></div>
+            <div class="icon-fix"></div>
+          </div>
+        </div>
+        <h3>Order Placed Successfully!</h3>
+        <p class="success-sub">Your fresh groceries are being packed at our local hub.</p>
+        <span id="successOrderId" class="order-id-badge">Order ID: FM-ORD-000000</span>
+      </div>
+
+      <div class="success-body">
+        <div class="order-tracking-card">
+          <div class="tracking-eta">
+            <span>Estimated Arrival</span>
+            <strong id="successEta">10 - 15 Minutes</strong>
+          </div>
+          <div class="tracking-steps">
+            <div class="step-node completed">
+              <div class="node-dot">✓</div>
+              <span>Placed</span>
+            </div>
+            <div class="step-bar completed"></div>
+            <div class="step-node active">
+              <div class="node-dot">📦</div>
+              <span>Packing</span>
+            </div>
+            <div class="step-bar"></div>
+            <div class="step-node">
+              <div class="node-dot">🛵</div>
+              <span>On the way</span>
+            </div>
+            <div class="step-bar"></div>
+            <div class="step-node">
+              <div class="node-dot">🏠</div>
+              <span>Delivered</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Receipt Breakdown -->
+        <div class="receipt-card">
+          <h5>Order Details</h5>
+          <div id="receiptItemsList" class="receipt-items"></div>
+          <div class="receipt-totals" id="receiptTotalsList"></div>
+        </div>
+      </div>
+
+      <div class="success-footer">
+        <button class="btn btn-primary btn-block" onclick="closeSuccessModal()">Continue Shopping</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Past Orders Modal -->
+  <div id="ordersHistoryOverlay" class="modal-overlay">
+    <div class="modal-dialog orders-history-dialog">
+      <div class="modal-header">
+        <div>
+          <h3>My Orders History</h3>
+          <p class="modal-subtitle">Track and reorder from your previous orders</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeOrdersHistoryModal()">✕</button>
+      </div>
+      <div class="modal-body orders-history-body" id="ordersHistoryList">
+        <!-- Dynamically rendered orders -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Center -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- 8. Complete Footer with Links, Socials & App Downloads -->
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <div class="logo-area">
+          <div class="logo-icon">🥑</div>
+          <div class="logo-text">
+            <h2>Fresh<span>Mart</span></h2>
+            <p>India's Favorite 10-15 Min Hyperlocal Supermarket</p>
+          </div>
+        </div>
+        <p class="footer-desc">Delivering farm-fresh vegetables, dairy, household essentials & munchies with 30-minute speed guarantees.</p>
+        
+        <!-- Social Media Icons -->
+        <div class="social-links-row">
+          <a href="#" class="social-icon" title="Twitter">𝕏</a>
+          <a href="#" class="social-icon" title="Instagram">📸</a>
+          <a href="#" class="social-icon" title="Facebook">📘</a>
+          <a href="#" class="social-icon" title="LinkedIn">💼</a>
+          <a href="#" class="social-icon" title="YouTube">📺</a>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div class="links-col">
+          <strong>Top Categories</strong>
+          <a href="#veggies" onclick="setCategoryFilter('Vegetables & Fruits')">Vegetables & Fruits</a>
+          <a href="#dairy" onclick="setCategoryFilter('Dairy, Bread & Eggs')">Dairy, Bread & Eggs</a>
+          <a href="#snacks" onclick="setCategoryFilter('Munchies / Snacks')">Munchies / Snacks</a>
+          <a href="#drinks" onclick="setCategoryFilter('Cold Drinks & Juices')">Cold Drinks & Juices</a>
+          <a href="#instant" onclick="setCategoryFilter('Instant & Frozen Food')">Instant & Frozen Food</a>
+          <a href="#personal" onclick="setCategoryFilter('Personal Care')">Personal Care</a>
+        </div>
+
+        <div class="links-col">
+          <strong>Quick Guarantees</strong>
+          <span>⚡ 10-15 Min Express</span>
+          <span>🌿 100% Quality Checked</span>
+          <span>💳 Contactless Checkout</span>
+          <span>🔁 Instant Doorstep Returns</span>
+          <span>🏷️ Everyday Lowest Prices</span>
+        </div>
+
+        <!-- Customer Support & Help Desk -->
+        <div class="links-col">
+          <strong>Customer Support</strong>
+          <span>📞 24/7 Helpline: 1800-FRESH-MART</span>
+          <span>📧 Support: care@freshmart.com</span>
+          <span>🛵 Real-time Rider Tracking</span>
+          <span>💬 Live In-App Chat Support</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <p>© 2026 FreshMart Supermarkets Inc. All rights reserved.</p>
+        <div class="footer-legal-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">Security</a>
+          <a href="#">FSSAI Lic. #10022022000000</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Client JavaScript -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
