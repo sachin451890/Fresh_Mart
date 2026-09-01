@@ -31,6 +31,7 @@ export const AiShoppingAssistant = () => {
   const [inputQuery, setInputQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [voiceLang, setVoiceLang] = useState('hi-IN'); // 'hi-IN' | 'en-IN'
   
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -46,7 +47,7 @@ export const AiShoppingAssistant = () => {
     }
   }, [messages, isOpen, isLoading]);
 
-  // Robust Production-Grade Web Speech Recognition (Voice-to-Text with Auto-Submit)
+  // Production-Grade Web Speech Recognition with Dynamic Language Switching (Hindi vs English)
   const handleVoiceButtonClick = () => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -72,14 +73,14 @@ export const AiShoppingAssistant = () => {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = 'hi-IN'; // Multilingual Hindi / English / Hinglish
+      recognition.lang = voiceLang; // 'hi-IN' (Hindi/Hinglish) or 'en-IN' (English)
 
       let capturedText = '';
 
       recognition.onstart = () => {
         setIsListening(true);
         setInputQuery('');
-        showToast('🎙️ Listening... Speak your grocery query now!');
+        showToast(`🎙️ Listening in ${voiceLang === 'hi-IN' ? 'Hindi 🇮🇳' : 'English 🇬🇧'} mode...`);
       };
 
       recognition.onresult = (event) => {
@@ -98,13 +99,13 @@ export const AiShoppingAssistant = () => {
           alert('⚠️ Microphone Permission Required!\n\nPlease click the lock icon 🔒 next to the browser address bar and ALLOW Microphone access for Localhost.');
           showToast('⚠️ Mic Permission Denied! Allow Mic in browser address bar.');
         } else if (event.error === 'no-speech') {
-          showToast('⚠️ No speech detected. Please click mic and try speaking again.');
+          showToast('⚠️ No speech detected. Click mic and try speaking clearly.');
         }
       };
 
       recognition.onend = () => {
         setIsListening(false);
-        // Auto submit if text was captured
+        // Auto submit if speech was captured
         if (capturedText && capturedText.trim().length > 0) {
           handleSendMessage(capturedText.trim());
         }
@@ -115,7 +116,7 @@ export const AiShoppingAssistant = () => {
     } catch (err) {
       console.error('Speech recognition exception:', err);
       setIsListening(false);
-      showToast('⚠️ Click Mic again or allow browser microphone permissions.');
+      showToast('⚠️ Click Mic again or check browser permissions.');
     }
   };
 
@@ -284,6 +285,29 @@ export const AiShoppingAssistant = () => {
                 ✕
               </button>
             </div>
+          </div>
+
+          {/* Language Switcher Toolbar */}
+          <div style={styles.langBar}>
+            <span style={{ fontSize: '11px', color: '#475569', fontWeight: '600' }}>Voice Language:</span>
+            <button
+              onClick={() => setVoiceLang('hi-IN')}
+              style={{
+                ...styles.langChip,
+                ...(voiceLang === 'hi-IN' ? styles.langChipActive : {}),
+              }}
+            >
+              🇮🇳 Hindi / Hinglish
+            </button>
+            <button
+              onClick={() => setVoiceLang('en-IN')}
+              style={{
+                ...styles.langChip,
+                ...(voiceLang === 'en-IN' ? styles.langChipActive : {}),
+              }}
+            >
+              🇬🇧 English
+            </button>
           </div>
 
           {/* Quick Query Chips */}
@@ -475,7 +499,7 @@ export const AiShoppingAssistant = () => {
           {/* Voice Active Banner Indicator */}
           {isListening && (
             <div style={styles.voiceActiveBanner}>
-              <span className="pulse-red-dot">🔴</span> Listening... Speak your grocery query now!
+              <span className="pulse-red-dot">🔴</span> Listening ({voiceLang === 'hi-IN' ? 'Hindi 🇮🇳' : 'English 🇬🇧'})... Speak your grocery query now!
             </div>
           )}
 
@@ -495,7 +519,7 @@ export const AiShoppingAssistant = () => {
                 ...styles.micBtn,
                 ...(isListening ? styles.micBtnActive : {}),
               }}
-              title={isListening ? 'Stop Listening' : 'Speak Command (Voice Recognition)'}
+              title={`Speak Command (${voiceLang === 'hi-IN' ? 'Hindi Mode' : 'English Mode'})`}
             >
               🎙️
             </button>
@@ -608,6 +632,30 @@ const styles = {
     fontSize: '16px',
     cursor: 'pointer',
     padding: '4px',
+  },
+  langBar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '6px 14px',
+    backgroundColor: '#f1f5f9',
+    borderBottom: '1px solid #e2e8f0',
+  },
+  langChip: {
+    border: '1px solid #cbd5e1',
+    backgroundColor: '#ffffff',
+    color: '#334155',
+    borderRadius: '12px',
+    padding: '3px 8px',
+    fontSize: '10px',
+    fontWeight: '600',
+    cursor: 'pointer',
+  },
+  langChipActive: {
+    backgroundColor: '#059669',
+    color: '#ffffff',
+    borderColor: '#059669',
+    fontWeight: '700',
   },
   chipsBar: {
     display: 'flex',

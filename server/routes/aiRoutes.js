@@ -73,27 +73,38 @@ const sanitizeInput = (text) => {
   return text.trim();
 };
 
+// Common Filler & Stop Words Filter
+const STOP_WORDS = new Set([
+  'please', 'kindly', 'show', 'find', 'me', 'want', 'need', 'i', 'have', 'do', 'you',
+  'karo', 'dikhao', 'dikhaye', 'mujhe', 'chahiye', 'bhai', 'batao', 'lagao', 'lao',
+  'ke', 'ka', 'ki', 'se', 'ko', 'hai', 'hain', 'mein', 'in', 'the', 'a', 'an', 'some',
+  'for', 'with', 'under', 'below', 'rs', 'rupees', 'bhi', 'aur', 'ya', 'par', 'per',
+  'प्लीज', 'प्लीज़', 'दिखाओ', 'चाहिए', 'मुझे', 'करो', 'लाओ', 'बताओ'
+]);
+
 // Devanagari Hindi Script & Hinglish Dictionary Normalizer
 const normalizeQueryTerms = (rawQuery) => {
   let q = rawQuery.toLowerCase().replace(/[।.,!?]/g, '').trim();
 
   // Dictionary mapping Devanagari & Hindi words to standard search terms
   const dictionary = [
-    { regex: /मिल्क|दूध|doodh|dudh/gi, val: 'milk' },
-    { regex: /ऐड|एड|डालो|खरीदो|जोड़ो|करो|add/gi, val: 'add' },
+    { regex: /मिल्क|दूध|doodh|dudh|milks/gi, val: 'milk' },
+    { regex: /ऐड|एड|डालो|खरीदो|जोड़ो|करो|add|buy|put/gi, val: 'add' },
     { regex: /रिमूव|हटाओ|खाली|डिलीट|remove|delete|clear/gi, val: 'remove' },
     { regex: /कार्ट|टोकरी|cart/gi, val: 'cart' },
-    { regex: /स्नैक|चिप्स|नमकीन|नाश्ता|snacks|namkeen/gi, val: 'snacks' },
+    { regex: /स्नैक|चिप्स|नमकीन|नाश्ता|snacks|namkeen|chips/gi, val: 'snacks' },
     { regex: /ब्रेकफास्ट|नाश्ता|breakfast/gi, val: 'breakfast' },
     { regex: /ऑर्डर|कहाँ|कहां|order|status/gi, val: 'order' },
-    { regex: /आलू|potato|aloo/gi, val: 'potato' },
-    { regex: /प्याज|onion|pyaz/gi, val: 'onion' },
-    { regex: /टमाटर|tomato|tamatar/gi, val: 'tomato' },
+    { regex: /आलू|potato|aloo|potatoes/gi, val: 'potato' },
+    { regex: /प्याज|onion|pyaz|onions/gi, val: 'onion' },
+    { regex: /टमाटर|tomato|tamatar|tomatoes/gi, val: 'tomato' },
     { regex: /ब्रेड|bread/gi, val: 'bread' },
-    { regex: /अंडा|अंडे|egg/gi, val: 'egg' },
+    { regex: /अंडा|अंडे|egg|eggs/gi, val: 'egg' },
     { regex: /बटर|मक्खन|butter/gi, val: 'butter' },
     { regex: /पनीर|paneer/gi, val: 'paneer' },
     { regex: /तेल|ऑयल|oil/gi, val: 'oil' },
+    { regex: /कोक|पेप्सी|कोल्ड ड्रिंक|coke|pepsi|drink|beverage/gi, val: 'coke' },
+    { regex: /दही|curd|yogurt/gi, val: 'yogurt' },
   ];
 
   let expandedTerms = [];
@@ -172,7 +183,9 @@ const processAiIntent = (userQuery, userContext) => {
         (query.includes('paneer') && p.name.toLowerCase().includes('paneer')) ||
         (query.includes('butter') && p.name.toLowerCase().includes('butter')) ||
         (query.includes('egg') && p.name.toLowerCase().includes('egg')) ||
-        (query.includes('potato') && p.name.toLowerCase().includes('potato'))
+        (query.includes('potato') && p.name.toLowerCase().includes('potato')) ||
+        (query.includes('onion') && p.name.toLowerCase().includes('onion')) ||
+        (query.includes('tomato') && p.name.toLowerCase().includes('tomato'))
     );
     if (matchedProduct) {
       return {
@@ -267,9 +280,13 @@ const processAiIntent = (userQuery, userContext) => {
   }
 
   // ==========================================
-  // 4. Product Search / Category Inquiry (e.g., "Milk dikhao", "Find snacks", "Organic products", "मिल्क")
+  // 4. Smart Keyword Extraction & Product Search
   // ==========================================
   let searchResults = [];
+
+  // Extract meaningful non-stop words
+  const rawWords = query.replace(/[^\w\s]/gi, '').split(/\s+/);
+  const coreKeywords = rawWords.filter((w) => w.length > 2 && !STOP_WORDS.has(w));
 
   if (query.includes('milk')) {
     searchResults = products.filter((p) => p.name.toLowerCase().includes('milk') || p.category.includes('Dairy'));
@@ -279,17 +296,25 @@ const processAiIntent = (userQuery, userContext) => {
     searchResults = products.filter((p) => p.isOrganic || p.badge?.includes('Organic') || p.category.includes('Vegetables'));
   } else if (query.includes('drink') || query.includes('beverage') || query.includes('juice') || query.includes('coke')) {
     searchResults = products.filter((p) => p.category.includes('Beverages'));
-  } else {
-    // General keyword match
-    const keywords = query.replace(/[^\w\s]/gi, '').split(' ').filter((w) => w.length > 2);
-    searchResults = products.filter((p) =>
-      keywords.some(
-        (kw) =>
-          p.name.toLowerCase().includes(kw) ||
-          p.category.toLowerCase().includes(kw) ||
-          (p.subCategory && p.subCategory.toLowerCase().includes(kw))
-      )
-    );
+  } else if (coreKeywords.length > 0) {
+    // Score products by keyword match relevance
+    const scoredProducts = products.map((p) => {
+      let score = 0;
+      const prodName = p.name.toLowerCase();
+      const prodCat = p.category.toLowerCase();
+      const prodSub = (p.subCategory || '').toLowerCase();
+
+      coreKeywords.forEach((kw) => {
+        if (prodName.includes(kw)) score += 5;
+        if (prodSub.includes(kw)) score += 3;
+        if (prodCat.includes(kw)) score += 2;
+      });
+
+      return { product: p, score };
+    });
+
+    const matches = scoredProducts.filter((item) => item.score > 0).sort((a, b) => b.score - a.score);
+    searchResults = matches.map((item) => item.product);
   }
 
   if (searchResults.length > 0) {
