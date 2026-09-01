@@ -146,43 +146,20 @@ export const AiShoppingAssistant = () => {
     setIsLoading(true);
 
     try {
-      // Call backend AI Endpoint with fallback to port 3000
-      let response;
-      const reqBody = JSON.stringify({
-        message: query,
-        userContext: {
-          user: user
-            ? {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-              }
-            : null,
-          cartItemsCount: cartItems.length,
-        },
-      });
+      const apiEndpoint = import.meta.env.VITE_API_BASE_URL
+        ? `${import.meta.env.VITE_API_BASE_URL}/ai/chat`
+        : '/api/ai/chat';
 
-      try {
-        response = await fetch('/api/ai/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: reqBody,
-        });
-        if (!response.ok && response.status === 404) {
-          throw new Error('Fallback to direct port 3000');
-        }
-      } catch {
-        response = await fetch('http://localhost:3000/api/ai/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: reqBody,
-        });
-      }
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: reqBody,
+      });
 
       const data = await response.json();
       setIsLoading(false);
 
-      if (data.success && data.response) {
+      if (response.ok && data.success && data.response) {
         const resp = data.response;
 
         // Execute Client-Side Cart & Chat Actions based on AI Intent
@@ -210,14 +187,27 @@ export const AiShoppingAssistant = () => {
         };
         setMessages((prev) => [...prev, aiMsg]);
       } else {
-        throw new Error(data.message || 'Unable to fetch AI response');
+        const userFriendlyError =
+          data.error || data.message || 'Unable to connect to assistant right now. Please try again.';
+        const errorMsg = {
+          id: `err-${Date.now()}`,
+          sender: 'assistant',
+          isError: true,
+          queryToRetry: query,
+          text: `⚠️ ${userFriendlyError}`,
+          products: [],
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, errorMsg]);
       }
     } catch (err) {
       setIsLoading(false);
       const errorMsg = {
         id: `err-${Date.now()}`,
         sender: 'assistant',
-        text: '⚠️ Apologies, server error processing AI response. Please try again in a moment!',
+        isError: true,
+        queryToRetry: query,
+        text: '⚠️ Unable to reach FreshMart AI server. Please check your connection and tap Retry 🔄',
         products: [],
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
@@ -356,6 +346,15 @@ export const AiShoppingAssistant = () => {
                   }}
                 >
                   <div style={{ whiteSpace: 'pre-line' }}>{msg.text}</div>
+
+                  {msg.isError && msg.queryToRetry && (
+                    <button
+                      style={styles.retryBtn}
+                      onClick={() => handleSendMessage(msg.queryToRetry)}
+                    >
+                      🔄 Retry Request
+                    </button>
+                  )}
 
                   {/* Render VIEW_CART intent summary inside AI Chat */}
                   {msg.intent === 'VIEW_CART' && (
@@ -894,5 +893,17 @@ const styles = {
     fontSize: '20px',
     color: '#059669',
     animation: 'pulse 1s infinite',
+  },
+  retryBtn: {
+    marginTop: '8px',
+    backgroundColor: '#ef4444',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '12px',
+    padding: '4px 10px',
+    fontSize: '11px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    display: 'inline-block',
   },
 };

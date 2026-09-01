@@ -56,6 +56,16 @@ describe('FreshMart Backend API & AI Test Suite', () => {
     expect(res.body.response.products.length).toBeGreaterThan(0);
   });
 
+  it('POST /api/ai/chat - returns 400 Bad Request for empty message', async () => {
+    const res = await request(app)
+      .post('/api/ai/chat')
+      .send({ message: '   ' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.code).toBe('INVALID_REQUEST');
+  });
+
   it('POST /api/ai/chat - processes Devanagari Hindi speech query "प्लीज़ ऐड मिल्क।"', async () => {
     const res = await request(app)
       .post('/api/ai/chat')

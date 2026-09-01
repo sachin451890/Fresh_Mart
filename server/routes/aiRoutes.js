@@ -10,9 +10,9 @@ const router = express.Router();
 const productsFilePath = path.join(__dirname, '../data/products.json');
 const ordersFilePath = path.join(__dirname, '../data/orders.json');
 
-// Simple In-Memory Rate Limiting per IP
+// Simple In-Memory Rate Limiting per IP (30 requests per minute)
 const rateLimitMap = new Map();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 30;
 
 const checkRateLimit = (ip) => {
@@ -51,7 +51,7 @@ const getOrdersData = () => {
   }
 };
 
-// Prompt Injection & Security Filter
+// Security & Prompt Injection Filter
 const INJECTION_PATTERNS = [
   /ignore (all )?previous instructions/i,
   /reveal (the )?system prompt/i,
@@ -86,7 +86,6 @@ const STOP_WORDS = new Set([
 const normalizeQueryTerms = (rawQuery) => {
   let q = rawQuery.toLowerCase().replace(/[।.,!?]/g, '').trim();
 
-  // Dictionary mapping Devanagari & Hindi words to standard search terms
   const dictionary = [
     { regex: /मिल्क|दूध|doodh|dudh|milks/gi, val: 'milk' },
     { regex: /ऐड|एड|डालो|खरीदो|जोड़ो|करो|add|buy|put/gi, val: 'add' },
@@ -117,15 +116,54 @@ const normalizeQueryTerms = (rawQuery) => {
   return { original: q, combined: `${q} ${expandedTerms.join(' ')}` };
 };
 
+// Optional LLM Call to Gemini API (if GEMINI_API_KEY or AI_API_KEY is configured)
+const tryGeminiTextEnhancement = async (userQuery, fallbackText) => {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
+  if (!apiKey) return fallbackText;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  text: `You are FreshMart AI Grocery Assistant. Respond concisely, politely, and helpfully in 1-2 friendly sentences (Hindi/English/Hinglish as appropriate) for customer query: "${userQuery}". Context note: ${fallbackText}`,
+                },
+              ],
+            },
+          ],
+        }),
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (generatedText && generatedText.trim()) {
+        return generatedText.trim();
+      }
+    }
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[Gemini API Fallback Note]: LLM call failed, using built-in NLP engine');
+    }
+  }
+  return fallbackText;
+};
+
 // Natural Language Intent Recognition Engine (English, Hindi, Hinglish, Devanagari)
-const processAiIntent = (userQuery, userContext) => {
+const processAiIntent = async (userQuery, userContext) => {
   const { original, combined } = normalizeQueryTerms(userQuery);
   const query = combined.toLowerCase();
   const products = getProductsData();
 
-  // ==========================================
-  // 0. Clear Chat History Intent ("clear chat", "clear all chat", "chat clear", "chat remove")
-  // ==========================================
+  // 0. CLEAR CHAT HISTORY INTENT
   if (
     query.includes('clear chat') ||
     query.includes('clear all chat') ||
@@ -144,11 +182,7 @@ const processAiIntent = (userQuery, userContext) => {
     };
   }
 
-  // ==========================================
-  // 1. Cart Manipulation Intents (Clear, Remove, View, Add)
-  // ==========================================
-
-  // 1A. SPECIFIC ITEM REMOVE INTENT (e.g. "remove bread from cart", "मिल्क हटाओ")
+  // 1A. SPECIFIC ITEM REMOVE INTENT
   if (query.includes('remove') || query.includes('delete') || query.includes('hatao') || query.includes('रिमूव') || query.includes('हटाओ')) {
     const matchedProduct = products.find(
       (p) =>
@@ -169,7 +203,7 @@ const processAiIntent = (userQuery, userContext) => {
     }
   }
 
-  // 1B. CLEAR ALL CART INTENT ("cart remove", "cart empty", "clear cart", "कार्ट खाली करो")
+  // 1B. CLEAR ALL CART INTENT
   if (
     (query.includes('cart') && (query.includes('remove') || query.includes('clear') || query.includes('khali') || query.includes('empty') || query.includes('delete') || query.includes('hataye') || query.includes('खाली'))) ||
     query.includes('clear cart') ||
@@ -183,7 +217,7 @@ const processAiIntent = (userQuery, userContext) => {
     };
   }
 
-  // 1C. VIEW CART INTENT ("cart dikhao", "show cart", "what is in my cart", "कार्ट दिखाओ")
+  // 1C. VIEW CART INTENT
   if (query.includes('show cart') || query.includes('cart dikhao') || query.includes('view cart') || query.includes('cart total') || query.includes('what is in my cart') || query.includes('कार्ट दिखाओ')) {
     return {
       text: 'Aapke current Cart ka summary yahan hai! Aap Cart Drawer open karke quantities change ya checkout kar sakte hain:',
@@ -193,7 +227,7 @@ const processAiIntent = (userQuery, userContext) => {
     };
   }
 
-  // 1D. ADD PRODUCT INTENT (e.g. "add milk to cart", "2 bread add karo", "प्लीज़ ऐड मिल्क", "दूध ऐड करो")
+  // 1D. ADD PRODUCT INTENT
   if (query.includes('add') || query.includes('dalo') || query.includes('buy') || query.includes('ऐड') || query.includes('एड') || query.includes('डालो')) {
     const matchedProduct = products.find(
       (p) =>
@@ -219,9 +253,7 @@ const processAiIntent = (userQuery, userContext) => {
     }
   }
 
-  // ==========================================
-  // 2. Order History / Order Status Inquiry
-  // ==========================================
+  // 2. ORDER HISTORY / ORDER STATUS
   if (
     query.includes('order') ||
     query.includes('kaha hai') ||
@@ -263,9 +295,7 @@ const processAiIntent = (userQuery, userContext) => {
     };
   }
 
-  // ==========================================
-  // 3. Budget / Meal Plan Shopping List
-  // ==========================================
+  // 3. BUDGET / MEAL PLAN SHOPPING LIST
   if (query.includes('breakfast') || query.includes('party') || query.includes('list') || query.includes('under ₹') || query.includes('under rs') || query.includes('नाश्ता')) {
     let budget = 500;
     const match = query.match(/(?:under|below|budget|rs\.?|₹)\s*(\d+)/i);
@@ -300,12 +330,9 @@ const processAiIntent = (userQuery, userContext) => {
     };
   }
 
-  // ==========================================
-  // 4. Smart Keyword Extraction & Product Search
-  // ==========================================
+  // 4. PRODUCT SEARCH & RELEVANCE MATCHING
   let searchResults = [];
 
-  // Extract meaningful non-stop words
   const rawWords = query.replace(/[^\w\s]/gi, '').split(/\s+/);
   const coreKeywords = rawWords.filter((w) => w.length > 2 && !STOP_WORDS.has(w));
 
@@ -318,7 +345,6 @@ const processAiIntent = (userQuery, userContext) => {
   } else if (query.includes('drink') || query.includes('beverage') || query.includes('juice') || query.includes('coke')) {
     searchResults = products.filter((p) => p.category.includes('Beverages'));
   } else if (coreKeywords.length > 0) {
-    // Score products by keyword match relevance
     const scoredProducts = products.map((p) => {
       let score = 0;
       const prodName = p.name.toLowerCase();
@@ -340,17 +366,25 @@ const processAiIntent = (userQuery, userContext) => {
 
   if (searchResults.length > 0) {
     const list = searchResults.slice(0, 4);
+    const text = await tryGeminiTextEnhancement(
+      userQuery,
+      `Here are the matching FreshMart items for your query **"${userQuery}"**:`
+    );
     return {
-      text: `Here are the matching FreshMart items for your query **"${userQuery}"**:`,
+      text,
       intent: 'PRODUCT_SEARCH',
       products: list,
     };
   }
 
-  // 5. Default Helpful Assistant Response
+  // 5. DEFAULT HELPFUL ASSISTANT RESPONSE
   const featured = products.slice(0, 3);
+  const defaultText = await tryGeminiTextEnhancement(
+    userQuery,
+    `I couldn't find an exact match for "${userQuery}". Here are some of our popular best-selling grocery items available for 10-15 min express delivery:`
+  );
   return {
-    text: `I couldn't find an exact match for "${userQuery}". Here are some of our popular best-selling grocery items available for 10-15 min express delivery:`,
+    text: defaultText,
     intent: 'GENERAL_ASSIST',
     products: featured,
   };
@@ -358,37 +392,58 @@ const processAiIntent = (userQuery, userContext) => {
 
 // POST /api/ai/chat Endpoint
 router.post('/chat', async (req, res) => {
+  const startTime = Date.now();
   try {
     const ip = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
+
+    // Development-only sanitized logging
+    if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_LOGS === 'true') {
+      console.log(`[AI Request]: IP=${ip.substring(0, 7)}... Method=POST Path=/api/ai/chat`);
+      console.log(`[AI Env Check]: GEMINI_API_KEY configured: ${Boolean(process.env.GEMINI_API_KEY || process.env.AI_API_KEY)}`);
+    }
+
     if (!checkRateLimit(ip)) {
       return res.status(429).json({
         success: false,
-        message: 'Rate Limit Exceeded: Too many AI requests. Please wait a minute and try again.',
+        error: 'Rate Limit Exceeded: Too many AI requests. Please wait a minute and try again.',
+        code: 'RATE_LIMIT_EXCEEDED',
       });
     }
 
-    const { message, userContext } = req.body;
+    const { message, userContext } = req.body || {};
+
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Message text is required and must be a non-empty string.',
+        code: 'INVALID_REQUEST',
+      });
+    }
+
     const sanitized = sanitizeInput(message);
 
     if (sanitized === null) {
       return res.json({
         success: true,
+        query: message,
         response: {
           text: '⚠️ **Security Notice**: Your request contained unauthorized credentials or prompt injection keywords and was denied.',
           intent: 'SECURITY_DENIAL',
           products: [],
         },
+        timestamp: new Date().toISOString(),
       });
     }
 
-    if (!sanitized) {
-      return res.status(400).json({ success: false, message: 'Message text is required' });
+    // Process natural language shopping request
+    const aiResponse = await processAiIntent(sanitized, userContext);
+
+    const duration = Date.now() - startTime;
+    if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_LOGS === 'true') {
+      console.log(`[AI Response]: Success in ${duration}ms Intent=${aiResponse.intent}`);
     }
 
-    // Process natural language shopping request
-    const aiResponse = processAiIntent(sanitized, userContext);
-
-    res.json({
+    return res.json({
       success: true,
       query: sanitized,
       response: aiResponse,
@@ -396,10 +451,10 @@ router.post('/chat', async (req, res) => {
     });
   } catch (err) {
     console.error('[AI API Error]:', err.message);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: 'Failed to process AI assistant request.',
-      error: err.message,
+      error: 'Failed to process AI assistant request. Please try again.',
+      code: 'AI_SERVER_ERROR',
     });
   }
 });
