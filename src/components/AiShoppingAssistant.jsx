@@ -54,23 +54,37 @@ export const AiShoppingAssistant = () => {
     setIsLoading(true);
 
     try {
-      // Call backend AI Endpoint
-      const response = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: query,
-          userContext: {
-            user: user
-              ? {
-                  id: user.id,
-                  name: user.name,
-                  email: user.email,
-                }
-              : null,
-          },
-        }),
+      // Call backend AI Endpoint with fallback to port 3000
+      let response;
+      const reqBody = JSON.stringify({
+        message: query,
+        userContext: {
+          user: user
+            ? {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+              }
+            : null,
+        },
       });
+
+      try {
+        response = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: reqBody,
+        });
+        if (!response.ok && response.status === 404) {
+          throw new Error('Fallback to direct port 3000');
+        }
+      } catch {
+        response = await fetch('http://localhost:3000/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: reqBody,
+        });
+      }
 
       const data = await response.json();
       setIsLoading(false);
