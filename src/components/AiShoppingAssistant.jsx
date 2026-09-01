@@ -11,6 +11,7 @@ export const AiShoppingAssistant = () => {
     getItemQuantity,
     updateQuantity,
     itemTotal,
+    isCartOpen,
     setIsCartOpen,
     openProductDetails,
     setIsOrdersHistoryOpen,
@@ -245,17 +246,16 @@ export const AiShoppingAssistant = () => {
 
   return (
     <>
-      {/* Floating Trigger Button (Bottom-Right) */}
+      {/* Floating Trigger Button (Bottom-Right with Cart Drawer Clearance) */}
       {!isOpen && (
         <button
-          className="ai-trigger-btn"
+          className={`ai-trigger-btn ${isCartOpen ? 'cart-drawer-open' : ''}`}
           onClick={() => setIsOpen(true)}
           title="Ask FreshMart AI Assistant (Voice / Text)"
-          style={styles.triggerBtn}
         >
           <span style={{ fontSize: '22px' }}>🤖</span>
-          <span style={styles.triggerLabel}>AI Voice & Chat</span>
-          <span style={styles.badgePulse}>NEW</span>
+          <span className="ai-trigger-label">AI Voice & Chat</span>
+          <span className="badge-pulse-new">NEW</span>
         </button>
       )}
 
@@ -555,36 +555,6 @@ export const AiShoppingAssistant = () => {
 };
 
 const styles = {
-  triggerBtn: {
-    position: 'fixed',
-    bottom: '24px',
-    right: '24px',
-    zIndex: 999,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    backgroundColor: '#059669',
-    color: '#ffffff',
-    border: 'none',
-    borderRadius: '30px',
-    padding: '12px 20px',
-    fontWeight: '700',
-    fontSize: '14px',
-    cursor: 'pointer',
-    boxShadow: '0 8px 24px rgba(5, 150, 105, 0.4)',
-    transition: 'all 0.2s ease',
-  },
-  triggerLabel: {
-    letterSpacing: '0.3px',
-  },
-  badgePulse: {
-    backgroundColor: '#ef4444',
-    color: '#ffffff',
-    fontSize: '10px',
-    fontWeight: '800',
-    padding: '2px 6px',
-    borderRadius: '10px',
-  },
   chatWindow: {
     position: 'fixed',
     bottom: '24px',

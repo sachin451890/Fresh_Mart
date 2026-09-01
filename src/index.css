@@ -6328,59 +6328,83 @@ button, input, select {
 }
 
 /* ==========================================================================
-   AI Assistant Mobile & All-Screen Responsive Styles
+   AI Assistant Mobile & All-Screen Responsive Styles & Cart Clearance
    ========================================================================== */
+.badge-pulse-new {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  padding: 2px 6px !important;
+  border-radius: 10px !important;
+  letter-spacing: 0.5px !important;
+}
+
 .ai-trigger-btn {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 999;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background-color: #059669;
-  color: #ffffff;
-  border: none;
-  border-radius: 30px;
-  padding: 12px 20px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 999 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background-color: #059669 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 30px !important;
+  padding: 12px 20px !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 .ai-trigger-btn:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.5);
-  background-color: #047857;
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.5) !important;
+  background-color: #047857 !important;
 }
 
 .ai-trigger-btn:active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0) scale(0.97) !important;
 }
 
-/* Tablet & Mobile Screens (< 768px) */
-@media (max-width: 767px) {
-  .ai-trigger-btn {
-    bottom: 84px; /* Lifted above mobile bottom bar */
-    right: 16px;
-    padding: 10px 16px;
-    font-size: 13px;
-    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.45);
+/* ==========================================================================
+   Cart Drawer Open Clearance Rules (Zero Overlap with Checkout Button)
+   ========================================================================== */
+
+/* Desktop / Tablet Landscape (>= 768px):
+   When Cart Drawer is OPEN (width: 420px), shift AI button left of Cart Drawer */
+@media (min-width: 768px) {
+  .ai-trigger-btn.cart-drawer-open {
+    right: calc(420px + 24px) !important; /* Shift left of 420px cart drawer */
+    bottom: 24px !important;
+    z-index: 10001 !important; /* Above cart overlay backdrop */
   }
 }
 
-/* Mobile Devices (< 640px) */
-@media (max-width: 639px) {
+/* Mobile Devices (< 768px):
+   When Cart Drawer is OPEN on mobile (width: 100vw), dock AI button cleanly above checkout CTA footer */
+@media (max-width: 767px) {
   .ai-trigger-btn {
-    bottom: 80px;
-    right: 14px;
-    padding: 10px 14px;
-    font-size: 12px;
-    border-radius: 24px;
+    bottom: 24px !important;
+    right: 16px !important;
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+  }
+
+  .ai-trigger-btn.cart-drawer-open {
+    bottom: max(160px, calc(140px + env(safe-area-inset-bottom))) !important;
+    right: 16px !important;
+    z-index: 10002 !important; /* Above cart overlay */
+    padding: 8px 14px !important;
+    font-size: 11px !important;
+    border-radius: 20px !important;
+    background-color: #047857 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
   }
 
   /* Full Screen Mobile AI Assistant Drawer */
@@ -6401,37 +6425,48 @@ button, input, select {
   }
 
   .ai-chat-header {
-    padding-top: max(14px, env(safe-area-inset-top));
+    padding-top: max(14px, env(safe-area-inset-top)) !important;
   }
 }
 
 /* Compact Mobile Screens (< 380px) */
 @media (max-width: 379px) {
   .ai-trigger-btn {
-    bottom: 76px;
-    right: 10px;
-    padding: 8px 12px;
+    bottom: 20px !important;
+    right: 12px !important;
+    padding: 8px 12px !important;
+  }
+
+  .ai-trigger-btn.cart-drawer-open {
+    bottom: max(150px, calc(135px + env(safe-area-inset-bottom))) !important;
+    right: 12px !important;
   }
 
   .ai-trigger-label {
-    font-size: 11px;
+    font-size: 11px !important;
   }
 }
 
 /* Large Screens & 4K Monitors (1440px+) */
 @media (min-width: 1440px) {
   .ai-trigger-btn {
-    bottom: 32px;
-    right: 32px;
-    padding: 14px 24px;
-    font-size: 15px;
+    bottom: 32px !important;
+    right: 32px !important;
+    padding: 14px 24px !important;
+    font-size: 15px !important;
+  }
+
+  .ai-trigger-btn.cart-drawer-open {
+    right: calc(440px + 32px) !important;
+    bottom: 32px !important;
   }
 
   .ai-chat-window {
-    width: 440px;
-    height: 620px;
-    bottom: 32px;
-    right: 32px;
+    width: 440px !important;
+    height: 620px !important;
+    bottom: 32px !important;
+    right: 32px !important;
   }
 }
+
 
