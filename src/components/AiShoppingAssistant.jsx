@@ -31,66 +31,9 @@ export const AiShoppingAssistant = () => {
   const [inputQuery, setInputQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [voiceSupported, setVoiceSupported] = useState(false);
   
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
-
-  // Initialize Web Speech Recognition
-  useEffect(() => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (SpeechRecognition) {
-      setVoiceSupported(true);
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = 'hi-IN'; // Native support for Hindi, Hinglish, & English
-
-      recognition.onresult = (event) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
-        setInputQuery(transcript);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognition.onerror = (err) => {
-        setIsListening(false);
-        if (err.error === 'not-allowed') {
-          showToast('⚠️ Microphone permission denied in browser settings');
-        }
-      };
-
-      recognitionRef.current = recognition;
-    }
-  }, [showToast]);
-
-  const toggleVoiceRecognition = () => {
-    if (!recognitionRef.current) {
-      showToast('⚠️ Voice Recognition is not supported in this browser. Try Chrome/Edge.');
-      return;
-    }
-
-    if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    } else {
-      try {
-        setInputQuery('');
-        recognitionRef.current.start();
-        setIsListening(true);
-        showToast('🎙️ Listening... Speak now (e.g. "Milk dikhao", "Cart remove karo")');
-      } catch (err) {
-        console.warn('Voice start error:', err);
-      }
-    }
-  };
 
   // Auto scroll to bottom
   const scrollToBottom = () => {
@@ -103,12 +46,89 @@ export const AiShoppingAssistant = () => {
     }
   }, [messages, isOpen, isLoading]);
 
+  // Robust Production-Grade Web Speech Recognition (Voice-to-Text with Auto-Submit)
+  const handleVoiceButtonClick = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      showToast('⚠️ Voice Search is supported on Chrome, Edge, Safari & Brave browsers.');
+      return;
+    }
+
+    if (isListening) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // ignore
+        }
+      }
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'hi-IN'; // Multilingual Hindi / English / Hinglish
+
+      let capturedText = '';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setInputQuery('');
+        showToast('🎙️ Listening... Speak your grocery query now!');
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        capturedText = transcript;
+        setInputQuery(transcript);
+      };
+
+      recognition.onerror = (event) => {
+        console.warn('[Speech Recognition Error]:', event.error);
+        setIsListening(false);
+        if (event.error === 'not-allowed') {
+          alert('⚠️ Microphone Permission Required!\n\nPlease click the lock icon 🔒 next to the browser address bar and ALLOW Microphone access for Localhost.');
+          showToast('⚠️ Mic Permission Denied! Allow Mic in browser address bar.');
+        } else if (event.error === 'no-speech') {
+          showToast('⚠️ No speech detected. Please click mic and try speaking again.');
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        // Auto submit if text was captured
+        if (capturedText && capturedText.trim().length > 0) {
+          handleSendMessage(capturedText.trim());
+        }
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('Speech recognition exception:', err);
+      setIsListening(false);
+      showToast('⚠️ Click Mic again or allow browser microphone permissions.');
+    }
+  };
+
   const handleSendMessage = async (textToSend) => {
     const query = (textToSend || inputQuery).trim();
     if (!query || isLoading) return;
 
     if (isListening && recognitionRef.current) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // ignore
+      }
       setIsListening(false);
     }
 
@@ -470,7 +490,7 @@ export const AiShoppingAssistant = () => {
             {/* Voice Recognition Mic Button */}
             <button
               type="button"
-              onClick={toggleVoiceRecognition}
+              onClick={handleVoiceButtonClick}
               style={{
                 ...styles.micBtn,
                 ...(isListening ? styles.micBtnActive : {}),
@@ -482,7 +502,7 @@ export const AiShoppingAssistant = () => {
 
             <input
               type="text"
-              placeholder={isListening ? 'Listening to your voice...' : "Speak or type (e.g. 'Milk dikhao')..."}
+              placeholder={isListening ? 'Listening to your voice...' : "Speak 🎙️ or type (e.g. 'Milk dikhao')..."}
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
               style={{
