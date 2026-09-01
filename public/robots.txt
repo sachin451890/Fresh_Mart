@@ -1,0 +1,7 @@
+# FreshMart Robots.txt Configuration
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://freshmart.in/sitemap.xml

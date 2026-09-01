@@ -2,12 +2,26 @@ import React from 'react';
 import { useCart } from '../context/CartContext';
 
 export const ProductCard = ({ product }) => {
-  const { addToCart, updateQuantity, getItemQuantity } = useCart();
+  const {
+    addToCart,
+    updateQuantity,
+    getItemQuantity,
+    openProductDetails,
+    wishlist = [],
+    toggleWishlist,
+  } = useCart();
+
   const quantity = getItemQuantity(product.id);
+  const isWishlisted = wishlist.includes(String(product.id));
 
   return (
     <div className="product-card">
-      <div className="product-img-wrap">
+      {/* Product Image & Badges */}
+      <div
+        className="product-img-wrap"
+        onClick={() => openProductDetails && openProductDetails(product)}
+        style={{ cursor: 'pointer' }}
+      >
         <img
           src={product.image}
           alt={product.name}
@@ -23,17 +37,54 @@ export const ProductCard = ({ product }) => {
         {product.badge && (
           <span className="tag-badge">{product.badge}</span>
         )}
+        
+        {/* Wishlist Heart Icon */}
+        <button
+          className="card-wishlist-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (toggleWishlist) toggleWishlist(product.id);
+          }}
+          title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+          style={{
+            position: 'absolute',
+            top: '8px',
+            right: '8px',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            border: 'none',
+            borderRadius: '50%',
+            width: '28px',
+            height: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '14px',
+            cursor: 'pointer',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            zIndex: 3,
+          }}
+        >
+          {isWishlisted ? '❤️' : '🤍'}
+        </button>
       </div>
 
+      {/* Product Information */}
       <div className="product-info">
         <span className="product-delivery-time">⚡ 10-15 MINS</span>
-        <h4 className="product-title" title={product.name}>{product.name}</h4>
+        <h4
+          className="product-title"
+          title={product.name}
+          onClick={() => openProductDetails && openProductDetails(product)}
+          style={{ cursor: 'pointer' }}
+        >
+          {product.name}
+        </h4>
         <span className="product-unit">{product.weight}</span>
 
         <div className="product-rating">
           <span className="star-icon">⭐</span>
-          <span className="rating-val">{product.rating}</span>
-          <span className="reviews-count">({product.reviewsCount})</span>
+          <span className="rating-val">{product.rating || 4.8}</span>
+          <span className="reviews-count">({product.reviewsCount || 120})</span>
         </div>
 
         <div className="product-price-row">

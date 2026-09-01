@@ -1,4 +1,5 @@
 import React from 'react';
+import { useCart } from './context/CartContext';
 import { Header } from './components/Header';
 import { DeliveryBanner } from './components/DeliveryBanner';
 import { BannerCarousel } from './components/BannerCarousel';
@@ -11,47 +12,74 @@ import { LocationModal } from './components/LocationModal';
 import { CheckoutModal } from './components/CheckoutModal';
 import { OrderSuccessModal } from './components/OrderSuccessModal';
 import { OrdersHistoryModal } from './components/OrdersHistoryModal';
+import { ProductDetailsModal } from './components/ProductDetailsModal';
+import { AdminDashboard } from './components/AdminDashboard';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Footer } from './components/Footer';
 import { Toast } from './components/Toast';
 
 export function App() {
+  const {
+    selectedProductDetails,
+    isProductDetailsOpen,
+    closeProductDetails,
+    isAdminOpen,
+    setIsAdminOpen,
+  } = useCart();
+
   return (
-    <div className="app-root">
-      {/* 1. Header & Announcement */}
-      <Header />
+    <ErrorBoundary>
+      <div className="app-root">
+        {/* 1. Header & Announcement */}
+        <Header />
 
-      {/* 2. Delivery Time Banner */}
-      <DeliveryBanner />
+        {/* 2. Delivery Time Banner */}
+        <DeliveryBanner />
 
-      {/* Main Page Body */}
-      <main className="main-content">
-        {/* 4. Hero Carousel */}
-        <BannerCarousel />
+        {/* Main Page Body */}
+        <main className="main-content">
+          {/* 4. Hero Carousel */}
+          <BannerCarousel />
 
-        {/* 3. Horizontal Category Navigation */}
-        <CategoryNav />
+          {/* 3. Horizontal Category Navigation */}
+          <CategoryNav />
 
-        {/* 5. Homepage Category Grid */}
-        <CategoryGrid />
+          {/* 5. Homepage Category Grid */}
+          <CategoryGrid />
 
-        {/* 6. Product Listing Page & Subcategories */}
-        <ProductList />
-      </main>
+          {/* 6. Product Listing Page & Subcategories */}
+          <ProductList />
+        </main>
 
-      {/* 7. Cart Drawer */}
-      <CartDrawer />
+        {/* 7. Cart Drawer */}
+        <CartDrawer />
 
-      {/* Modals */}
-      <LoginModal />
-      <LocationModal />
-      <CheckoutModal />
-      <OrderSuccessModal />
-      <OrdersHistoryModal />
-      <Toast />
+        {/* Modals */}
+        <LoginModal />
+        <LocationModal />
+        <CheckoutModal />
+        <OrderSuccessModal />
+        <OrdersHistoryModal />
+        
+        {/* Product Details Modal */}
+        <ProductDetailsModal
+          product={selectedProductDetails}
+          isOpen={isProductDetailsOpen}
+          onClose={closeProductDetails}
+        />
 
-      {/* 8. Footer */}
-      <Footer />
-    </div>
+        {/* Admin Console Modal */}
+        <AdminDashboard
+          isOpen={isAdminOpen}
+          onClose={() => setIsAdminOpen(false)}
+        />
+
+        <Toast />
+
+        {/* 8. Footer */}
+        <Footer />
+      </div>
+    </ErrorBoundary>
   );
 }
 

@@ -5,11 +5,19 @@ const DEFAULT_SUPABASE_URL = 'https://jlaywofncvmzwhzkqkyn.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_9f0FQPbcTGLjt77rNqW6DA_oEJ0tflT';
 
 export const getSupabaseConfig = () => {
-  const customUrl = localStorage.getItem('freshmart_supabase_url');
-  const customKey = localStorage.getItem('freshmart_supabase_anon_key');
+  const hasLocalStorage = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+  const customUrl = hasLocalStorage ? localStorage.getItem('freshmart_supabase_url') : null;
+  const customKey = hasLocalStorage ? localStorage.getItem('freshmart_supabase_anon_key') : null;
 
-  const envUrl = import.meta.env.VITE_SUPABASE_URL;
-  const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const envUrl =
+    typeof import.meta !== 'undefined' && import.meta.env
+      ? import.meta.env.VITE_SUPABASE_URL
+      : process.env.VITE_SUPABASE_URL;
+
+  const envKey =
+    typeof import.meta !== 'undefined' && import.meta.env
+      ? import.meta.env.VITE_SUPABASE_ANON_KEY
+      : process.env.VITE_SUPABASE_ANON_KEY;
 
   const url = customUrl || envUrl || DEFAULT_SUPABASE_URL;
   const anonKey = customKey || envKey || DEFAULT_SUPABASE_ANON_KEY;
@@ -26,13 +34,17 @@ export const getSupabaseConfig = () => {
 };
 
 export const setSupabaseConfig = (url, anonKey) => {
-  if (url) localStorage.setItem('freshmart_supabase_url', url.trim());
-  if (anonKey) localStorage.setItem('freshmart_supabase_anon_key', anonKey.trim());
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    if (url) localStorage.setItem('freshmart_supabase_url', url.trim());
+    if (anonKey) localStorage.setItem('freshmart_supabase_anon_key', anonKey.trim());
+  }
 };
 
 export const resetSupabaseConfig = () => {
-  localStorage.removeItem('freshmart_supabase_url');
-  localStorage.removeItem('freshmart_supabase_anon_key');
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    localStorage.removeItem('freshmart_supabase_url');
+    localStorage.removeItem('freshmart_supabase_anon_key');
+  }
 };
 
 const { url, anonKey } = getSupabaseConfig();
@@ -43,9 +55,9 @@ export const supabase = createClient(
   anonKey || DEFAULT_SUPABASE_ANON_KEY,
   {
     auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
+      persistSession: typeof window !== 'undefined',
+      autoRefreshToken: typeof window !== 'undefined',
+      detectSessionInUrl: typeof window !== 'undefined',
     },
   }
 );

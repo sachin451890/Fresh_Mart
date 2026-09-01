@@ -160,7 +160,41 @@ export const CartProvider = ({ children }) => {
     }
   });
 
-  // 5. Promo Code & Toast
+  // 5. Wishlist & Admin Modal States
+  const [wishlist, setWishlist] = useState(() => {
+    try {
+      const saved = localStorage.getItem('freshmart_react_wishlist');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [selectedProductDetails, setSelectedProductDetails] = useState(null);
+  const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
+
+  const openProductDetails = (product) => {
+    setSelectedProductDetails(product);
+    setIsProductDetailsOpen(true);
+  };
+
+  const closeProductDetails = () => {
+    setIsProductDetailsOpen(false);
+    setSelectedProductDetails(null);
+  };
+
+  const toggleWishlist = (productId) => {
+    const prodId = String(productId);
+    setWishlist((prev) => {
+      const exists = prev.includes(prodId);
+      const updated = exists ? prev.filter((id) => id !== prodId) : [...prev, prodId];
+      localStorage.setItem('freshmart_react_wishlist', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // 6. Promo Code & Toast
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
   const [couponSuccess, setCouponSuccess] = useState('');
@@ -732,6 +766,14 @@ export const CartProvider = ({ children }) => {
         latestOrder,
         pastOrders,
         placeOrder,
+        wishlist,
+        toggleWishlist,
+        selectedProductDetails,
+        isProductDetailsOpen,
+        openProductDetails,
+        closeProductDetails,
+        isAdminOpen,
+        setIsAdminOpen,
         toastMessage,
         showToast,
       }}

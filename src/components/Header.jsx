@@ -15,6 +15,7 @@ export const Header = () => {
     setIsLoginOpen,
     setIsLocationOpen,
     setIsOrdersHistoryOpen,
+    setIsAdminOpen,
     deliveryLocation,
     isDetectingLocation,
     searchQuery,
@@ -322,12 +323,12 @@ export const Header = () => {
                         className="user-dropdown-item"
                         onClick={() => {
                           setShowUserDropdown(false);
-                          setIsLoginOpen(true);
+                          if (setIsAdminOpen) setIsAdminOpen(true);
                         }}
                       >
                         <span className="item-left-content">
-                          <span className="item-emoji">👤</span>
-                          <span>My Profile</span>
+                          <span className="item-emoji">🛡️</span>
+                          <span>Admin Console</span>
                         </span>
                         <span>›</span>
                       </button>

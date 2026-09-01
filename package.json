@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "server": "node server/server.js",
-    "start": "vite"
+    "start": "vite",
+    "test": "vitest run"
   },
   "keywords": [
     "grocery",
@@ -18,7 +19,7 @@
     "javascript",
     "fullstack"
   ],
-  "author": "Antigravity 4-Agent Team",
+  "author": "Antigravity Engineering Team",
   "license": "MIT",
   "dependencies": {
     "@stripe/react-stripe-js": "^6.8.2",
@@ -33,6 +34,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.0",
-    "vite": "^8.2.2"
+    "supertest": "^7.2.2",
+    "vite": "^8.2.2",
+    "vitest": "^3.2.7"
   }
 }

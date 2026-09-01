@@ -9,11 +9,12 @@ import productRoutes from './routes/productRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import { verifySupabaseAuth } from './middleware/authMiddleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Helper to parse .env file
+// Parse .env file securely
 const envPath = path.join(__dirname, '../.env');
 if (fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, 'utf-8');
@@ -28,21 +29,63 @@ if (fs.existsSync(envPath)) {
 }
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Security & Standard Middleware
 app.use(cors());
+
+// Stripe raw Webhook Endpoint MUST be defined BEFORE express.json()
+app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  if (!stripe || !STRIPE_WEBHOOK_SECRET) {
+    console.log('[Stripe Webhook Notice]: Webhook secret not configured. Standard fallback active.');
+    return res.json({ received: true, mode: 'simulated' });
+  }
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error(`[Stripe Webhook Verification Error]: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle specific Stripe webhook events
+  switch (event.type) {
+    case 'payment_intent.succeeded': {
+      const paymentIntent = event.data.object;
+      console.log(`[Stripe Webhook] PaymentIntent ${paymentIntent.id} succeeded for amount ₹${paymentIntent.amount / 100}!`);
+      break;
+    }
+    case 'payment_intent.payment_failed': {
+      const paymentIntent = event.data.object;
+      console.warn(`[Stripe Webhook] PaymentIntent ${paymentIntent.id} failed.`);
+      break;
+    }
+    default:
+      console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`);
+  }
+
+  res.json({ received: true });
+});
+
+// JSON and URL-encoded parsers for all standard routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logger
+// Global Request Logger
 app.use((req, res, next) => {
   console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
   next();
 });
+
+// Attach Supabase Auth verification
+app.use(verifySupabaseAuth);
 
 // API Routes
 app.use('/api/products', productRoutes);
@@ -51,7 +94,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/orders', orderRoutes);
 
 // Stripe Payment Intent API Route
-app.post('/api/create-stripe-payment-intent', async (req, res) => {
+app.post('/api/create-stripe-payment-intent', async (req, res, next) => {
   try {
     const { amount, currency = 'inr' } = req.body;
     const amountInSmallestUnit = Math.max(100, Math.round((Number(amount) || 100) * 100));
@@ -88,31 +131,23 @@ app.post('/api/create-stripe-payment-intent', async (req, res) => {
       message: 'Stripe Payment processed & verified successfully!',
     });
   } catch (err) {
-    console.log('[Stripe Backend Notice]:', err.message);
-    const fallbackId = `pi_stripe_${Date.now()}_${Math.floor(100000 + Math.random() * 900000)}`;
-    res.json({
-      success: true,
-      clientSecret: `${fallbackId}_secret_${Math.random().toString(36).substring(7)}`,
-      paymentIntentId: fallbackId,
-      status: 'succeeded',
-      amount: req.body.amount || 0,
-      currency: 'inr',
-      message: 'Stripe Payment processed & verified successfully!',
-    });
+    next(err);
   }
 });
 
-// Health Check API
+// Production Health Check API
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
-    appName: 'FreshMart Supermarket API',
+    appName: 'FreshMart Supermarket Platform API',
+    environment: process.env.NODE_ENV || 'development',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
+    uptime: `${Math.floor(process.uptime())}s`,
   });
 });
 
-// Serve Static Frontend (Prefer built React SPA dist folder if it exists)
+// Serve Static Frontend SPA
 const distPath = path.join(__dirname, '../dist');
 const publicPath = path.join(__dirname, '../public');
 
@@ -128,11 +163,22 @@ if (fs.existsSync(distPath)) {
   });
 }
 
-// Start Server
+// Centralized Express Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error('[Backend Server Error]:', err);
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+  });
+});
+
+// Start Express Server
 app.listen(PORT, () => {
   console.log(`====================================================`);
-  console.log(`broccoli FreshMart Grocery Server is running!`);
-  console.log(`🚀 Access application: http://localhost:${PORT}`);
-  console.log(`📡 API Healthcheck:    http://localhost:${PORT}/api/health`);
+  console.log(`broccoli FreshMart Grocery Platform Server is running!`);
+  console.log(`🚀 Access Application: http://localhost:${PORT}`);
+  console.log(`📡 Health Check API:   http://localhost:${PORT}/api/health`);
   console.log(`====================================================`);
 });
