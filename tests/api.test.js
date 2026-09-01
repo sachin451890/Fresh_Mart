@@ -68,6 +68,16 @@ describe('FreshMart Backend API & AI Test Suite', () => {
     expect(res.body.response.products[0].name.toLowerCase()).toContain('milk');
   });
 
+  it('POST /api/ai/chat - detects CLEAR_CHAT_HISTORY intent when user requests "clear all chat"', async () => {
+    const res = await request(app)
+      .post('/api/ai/chat')
+      .send({ message: 'clear all chat' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.response.intent).toBe('CLEAR_CHAT_HISTORY');
+  });
+
   it('POST /api/ai/chat - detects CLEAR_CART intent when user requests removing cart items', async () => {
     const res = await request(app)
       .post('/api/ai/chat')

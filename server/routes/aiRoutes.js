@@ -79,7 +79,7 @@ const STOP_WORDS = new Set([
   'karo', 'dikhao', 'dikhaye', 'mujhe', 'chahiye', 'bhai', 'batao', 'lagao', 'lao',
   'ke', 'ka', 'ki', 'se', 'ko', 'hai', 'hain', 'mein', 'in', 'the', 'a', 'an', 'some',
   'for', 'with', 'under', 'below', 'rs', 'rupees', 'bhi', 'aur', 'ya', 'par', 'per',
-  'प्लीज', 'प्लीज़', 'दिखाओ', 'चाहिए', 'मुझे', 'करो', 'लाओ', 'बताओ'
+  'प्लीज', 'प्लीज़', 'दिखाओ', 'चाहिए', 'मुझे', 'करो', 'लाओ', 'बताओ', 'all'
 ]);
 
 // Devanagari Hindi Script & Hinglish Dictionary Normalizer
@@ -122,6 +122,27 @@ const processAiIntent = (userQuery, userContext) => {
   const { original, combined } = normalizeQueryTerms(userQuery);
   const query = combined.toLowerCase();
   const products = getProductsData();
+
+  // ==========================================
+  // 0. Clear Chat History Intent ("clear chat", "clear all chat", "chat clear", "chat remove")
+  // ==========================================
+  if (
+    query.includes('clear chat') ||
+    query.includes('clear all chat') ||
+    query.includes('clear conversation') ||
+    query.includes('clear history') ||
+    query.includes('chat remove') ||
+    query.includes('chat clear') ||
+    query.includes('delete chat') ||
+    query.includes('chat khali')
+  ) {
+    return {
+      text: 'Chat history cleared! 🧹 Main aapki kya sahayata kar sakta hoon?',
+      intent: 'CLEAR_CHAT_HISTORY',
+      action: 'CLEAR_CHAT_HISTORY',
+      products: [],
+    };
+  }
 
   // ==========================================
   // 1. Cart Manipulation Intents (Clear, Remove, View, Add)

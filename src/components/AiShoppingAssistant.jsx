@@ -184,8 +184,11 @@ export const AiShoppingAssistant = () => {
       if (data.success && data.response) {
         const resp = data.response;
 
-        // Execute Client-Side Cart Actions based on AI Intent
-        if (resp.intent === 'CLEAR_CART') {
+        // Execute Client-Side Cart & Chat Actions based on AI Intent
+        if (resp.intent === 'CLEAR_CHAT_HISTORY') {
+          handleClearChat();
+          return;
+        } else if (resp.intent === 'CLEAR_CART') {
           clearCart();
           showToast('All items removed from cart by AI Assistant 🧹');
         } else if (resp.intent === 'REMOVE_SPECIFIC_ITEM' && resp.targetProductId) {
