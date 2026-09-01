@@ -14,6 +14,7 @@ import { OrderSuccessModal } from './components/OrderSuccessModal';
 import { OrdersHistoryModal } from './components/OrdersHistoryModal';
 import { ProductDetailsModal } from './components/ProductDetailsModal';
 import { AdminDashboard } from './components/AdminDashboard';
+import { AiShoppingAssistant } from './components/AiShoppingAssistant';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Footer } from './components/Footer';
 import { Toast } from './components/Toast';
@@ -73,6 +74,9 @@ export function App() {
           isOpen={isAdminOpen}
           onClose={() => setIsAdminOpen(false)}
         />
+
+        {/* FreshMart AI Assistant Widget */}
+        <AiShoppingAssistant />
 
         <Toast />
 
