@@ -73,21 +73,58 @@ const sanitizeInput = (text) => {
   return text.trim();
 };
 
-// Natural Language Intent Recognition Engine (English, Hindi, Hinglish)
+// Devanagari Hindi Script & Hinglish Dictionary Normalizer
+const normalizeQueryTerms = (rawQuery) => {
+  let q = rawQuery.toLowerCase().replace(/[।.,!?]/g, '').trim();
+
+  // Dictionary mapping Devanagari & Hindi words to standard search terms
+  const dictionary = [
+    { regex: /मिल्क|दूध|doodh|dudh/gi, val: 'milk' },
+    { regex: /ऐड|एड|डालो|खरीदो|जोड़ो|करो|add/gi, val: 'add' },
+    { regex: /रिमूव|हटाओ|खाली|डिलीट|remove|delete|clear/gi, val: 'remove' },
+    { regex: /कार्ट|टोकरी|cart/gi, val: 'cart' },
+    { regex: /स्नैक|चिप्स|नमकीन|नाश्ता|snacks|namkeen/gi, val: 'snacks' },
+    { regex: /ब्रेकफास्ट|नाश्ता|breakfast/gi, val: 'breakfast' },
+    { regex: /ऑर्डर|कहाँ|कहां|order|status/gi, val: 'order' },
+    { regex: /आलू|potato|aloo/gi, val: 'potato' },
+    { regex: /प्याज|onion|pyaz/gi, val: 'onion' },
+    { regex: /टमाटर|tomato|tamatar/gi, val: 'tomato' },
+    { regex: /ब्रेड|bread/gi, val: 'bread' },
+    { regex: /अंडा|अंडे|egg/gi, val: 'egg' },
+    { regex: /बटर|मक्खन|butter/gi, val: 'butter' },
+    { regex: /पनीर|paneer/gi, val: 'paneer' },
+    { regex: /तेल|ऑयल|oil/gi, val: 'oil' },
+  ];
+
+  let expandedTerms = [];
+  dictionary.forEach(({ regex, val }) => {
+    if (regex.test(q)) {
+      expandedTerms.push(val);
+    }
+  });
+
+  return { original: q, combined: `${q} ${expandedTerms.join(' ')}` };
+};
+
+// Natural Language Intent Recognition Engine (English, Hindi, Hinglish, Devanagari)
 const processAiIntent = (userQuery, userContext) => {
-  const query = userQuery.toLowerCase();
+  const { original, combined } = normalizeQueryTerms(userQuery);
+  const query = combined.toLowerCase();
   const products = getProductsData();
 
   // ==========================================
   // 1. Cart Manipulation Intents (Clear, Remove, View, Add)
   // ==========================================
 
-  // 1A. SPECIFIC ITEM REMOVE INTENT (e.g. "remove bread from cart", "milk remove karo")
-  if (query.includes('remove') || query.includes('delete') || query.includes('hatao')) {
+  // 1A. SPECIFIC ITEM REMOVE INTENT (e.g. "remove bread from cart", "मिल्क हटाओ")
+  if (query.includes('remove') || query.includes('delete') || query.includes('hatao') || query.includes('रिमूव') || query.includes('हटाओ')) {
     const matchedProduct = products.find(
       (p) =>
         query.includes(p.name.toLowerCase()) ||
-        p.name.toLowerCase().split(' ').some((word) => word.length > 3 && query.includes(word))
+        p.name.toLowerCase().split(' ').some((word) => word.length > 3 && query.includes(word)) ||
+        (query.includes('milk') && p.name.toLowerCase().includes('milk')) ||
+        (query.includes('bread') && p.name.toLowerCase().includes('bread')) ||
+        (query.includes('paneer') && p.name.toLowerCase().includes('paneer'))
     );
     if (matchedProduct) {
       return {
@@ -100,9 +137,9 @@ const processAiIntent = (userQuery, userContext) => {
     }
   }
 
-  // 1B. CLEAR ALL CART INTENT ("cart remove", "remove items from cart", "cart empty", "clear cart", "cart khali")
+  // 1B. CLEAR ALL CART INTENT ("cart remove", "cart empty", "clear cart", "कार्ट खाली करो")
   if (
-    (query.includes('cart') && (query.includes('remove') || query.includes('clear') || query.includes('khali') || query.includes('empty') || query.includes('delete') || query.includes('hataye'))) ||
+    (query.includes('cart') && (query.includes('remove') || query.includes('clear') || query.includes('khali') || query.includes('empty') || query.includes('delete') || query.includes('hataye') || query.includes('खाली'))) ||
     query.includes('clear cart') ||
     query.includes('empty cart')
   ) {
@@ -114,8 +151,8 @@ const processAiIntent = (userQuery, userContext) => {
     };
   }
 
-  // 1C. VIEW CART INTENT ("cart dikhao", "show cart", "what is in my cart", "cart total")
-  if (query.includes('show cart') || query.includes('cart dikhao') || query.includes('view cart') || query.includes('cart total') || query.includes('what is in my cart')) {
+  // 1C. VIEW CART INTENT ("cart dikhao", "show cart", "what is in my cart", "कार्ट दिखाओ")
+  if (query.includes('show cart') || query.includes('cart dikhao') || query.includes('view cart') || query.includes('cart total') || query.includes('what is in my cart') || query.includes('कार्ट दिखाओ')) {
     return {
       text: 'Aapke current Cart ka summary yahan hai! Aap Cart Drawer open karke quantities change ya checkout kar sakte hain:',
       intent: 'VIEW_CART',
@@ -124,11 +161,18 @@ const processAiIntent = (userQuery, userContext) => {
     };
   }
 
-  // 1D. ADD INTENT (e.g. "add milk to cart", "2 bread add karo", "buy milk")
-  if (query.includes('add') || query.includes('dalo') || query.includes('buy')) {
-    const matchedProduct = products.find((p) =>
-      query.includes(p.name.toLowerCase()) ||
-      p.name.toLowerCase().split(' ').some((word) => word.length > 3 && query.includes(word))
+  // 1D. ADD PRODUCT INTENT (e.g. "add milk to cart", "2 bread add karo", "प्लीज़ ऐड मिल्क", "दूध ऐड करो")
+  if (query.includes('add') || query.includes('dalo') || query.includes('buy') || query.includes('ऐड') || query.includes('एड') || query.includes('डालो')) {
+    const matchedProduct = products.find(
+      (p) =>
+        query.includes(p.name.toLowerCase()) ||
+        p.name.toLowerCase().split(' ').some((word) => word.length > 3 && query.includes(word)) ||
+        (query.includes('milk') && p.name.toLowerCase().includes('milk')) ||
+        (query.includes('bread') && p.name.toLowerCase().includes('bread')) ||
+        (query.includes('paneer') && p.name.toLowerCase().includes('paneer')) ||
+        (query.includes('butter') && p.name.toLowerCase().includes('butter')) ||
+        (query.includes('egg') && p.name.toLowerCase().includes('egg')) ||
+        (query.includes('potato') && p.name.toLowerCase().includes('potato'))
     );
     if (matchedProduct) {
       return {
@@ -149,7 +193,8 @@ const processAiIntent = (userQuery, userContext) => {
     query.includes('kaha hai') ||
     query.includes('where is my') ||
     query.includes('latest order') ||
-    query.includes('status')
+    query.includes('status') ||
+    query.includes('ऑर्डर')
   ) {
     if (!userContext || !userContext.user) {
       return {
@@ -187,7 +232,7 @@ const processAiIntent = (userQuery, userContext) => {
   // ==========================================
   // 3. Budget / Meal Plan Shopping List
   // ==========================================
-  if (query.includes('breakfast') || query.includes('party') || query.includes('list') || query.includes('under ₹') || query.includes('under rs')) {
+  if (query.includes('breakfast') || query.includes('party') || query.includes('list') || query.includes('under ₹') || query.includes('under rs') || query.includes('नाश्ता')) {
     let budget = 500;
     const match = query.match(/(?:under|below|budget|rs\.?|₹)\s*(\d+)/i);
     if (match && match[1]) {
@@ -196,7 +241,7 @@ const processAiIntent = (userQuery, userContext) => {
 
     let recommended = products.filter((p) => p.price <= budget);
 
-    if (query.includes('breakfast')) {
+    if (query.includes('breakfast') || query.includes('नाश्ता')) {
       recommended = recommended.filter(
         (p) =>
           p.category.includes('Dairy') ||
@@ -206,7 +251,7 @@ const processAiIntent = (userQuery, userContext) => {
           p.name.toLowerCase().includes('butter') ||
           p.name.toLowerCase().includes('oats')
       );
-    } else if (query.includes('snack') || query.includes('munchies')) {
+    } else if (query.includes('snack') || query.includes('munchies') || query.includes('स्नैक')) {
       recommended = recommended.filter((p) => p.category.includes('Snacks') || p.category.includes('Beverages'));
     }
 
@@ -222,11 +267,11 @@ const processAiIntent = (userQuery, userContext) => {
   }
 
   // ==========================================
-  // 4. Product Search / Category Inquiry (e.g., "Milk dikhao", "Find snacks", "Organic products")
+  // 4. Product Search / Category Inquiry (e.g., "Milk dikhao", "Find snacks", "Organic products", "मिल्क")
   // ==========================================
   let searchResults = [];
 
-  if (query.includes('milk') || query.includes('doodh')) {
+  if (query.includes('milk')) {
     searchResults = products.filter((p) => p.name.toLowerCase().includes('milk') || p.category.includes('Dairy'));
   } else if (query.includes('snack') || query.includes('chips') || query.includes('namkeen')) {
     searchResults = products.filter((p) => p.category.includes('Snacks'));

@@ -56,6 +56,18 @@ describe('FreshMart Backend API & AI Test Suite', () => {
     expect(res.body.response.products.length).toBeGreaterThan(0);
   });
 
+  it('POST /api/ai/chat - processes Devanagari Hindi speech query "प्लीज़ ऐड मिल्क।"', async () => {
+    const res = await request(app)
+      .post('/api/ai/chat')
+      .send({ message: 'प्लीज़ ऐड मिल्क।' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.response.intent).toBe('ADD_PRODUCT');
+    expect(res.body.response.products.length).toBeGreaterThan(0);
+    expect(res.body.response.products[0].name.toLowerCase()).toContain('milk');
+  });
+
   it('POST /api/ai/chat - detects CLEAR_CART intent when user requests removing cart items', async () => {
     const res = await request(app)
       .post('/api/ai/chat')
