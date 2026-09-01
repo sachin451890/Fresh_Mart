@@ -56,6 +56,26 @@ describe('FreshMart Backend API & AI Test Suite', () => {
     expect(res.body.response.products.length).toBeGreaterThan(0);
   });
 
+  it('POST /api/ai/chat - detects CLEAR_CART intent when user requests removing cart items', async () => {
+    const res = await request(app)
+      .post('/api/ai/chat')
+      .send({ message: 'Cart items remove kar do' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.response.intent).toBe('CLEAR_CART');
+  });
+
+  it('POST /api/ai/chat - detects REMOVE_SPECIFIC_ITEM intent when user requests removing specific item', async () => {
+    const res = await request(app)
+      .post('/api/ai/chat')
+      .send({ message: 'Remove bread from cart' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.response.intent).toBe('REMOVE_SPECIFIC_ITEM');
+  });
+
   it('POST /api/ai/chat - denies prompt injection security breach attempts', async () => {
     const res = await request(app)
       .post('/api/ai/chat')

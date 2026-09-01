@@ -4,9 +4,14 @@ import { useCart } from '../context/CartContext';
 export const AiShoppingAssistant = () => {
   const {
     user,
+    cartItems,
     addToCart,
+    removeFromCart,
+    clearCart,
     getItemQuantity,
     updateQuantity,
+    itemTotal,
+    setIsCartOpen,
     openProductDetails,
     setIsOrdersHistoryOpen,
     showToast,
@@ -66,6 +71,7 @@ export const AiShoppingAssistant = () => {
                 email: user.email,
               }
             : null,
+          cartItemsCount: cartItems.length,
         },
       });
 
@@ -90,13 +96,26 @@ export const AiShoppingAssistant = () => {
       setIsLoading(false);
 
       if (data.success && data.response) {
+        const resp = data.response;
+
+        // Execute Client-Side Cart Actions based on AI Intent
+        if (resp.intent === 'CLEAR_CART') {
+          clearCart();
+          showToast('All items removed from cart by AI Assistant 🧹');
+        } else if (resp.intent === 'REMOVE_SPECIFIC_ITEM' && resp.targetProductId) {
+          removeFromCart(resp.targetProductId);
+          showToast('Item removed from cart 🗑️');
+        } else if (resp.intent === 'ADD_PRODUCT' && resp.products && resp.products.length > 0) {
+          addToCart(resp.products[0]);
+        }
+
         const aiMsg = {
           id: `ai-${Date.now()}`,
           sender: 'assistant',
-          text: data.response.text,
-          intent: data.response.intent,
-          products: data.response.products || [],
-          suggestedAction: data.response.suggestedAction,
+          text: resp.text,
+          intent: resp.intent,
+          products: resp.products || [],
+          suggestedAction: resp.suggestedAction,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prev) => [...prev, aiMsg]);
@@ -190,11 +209,17 @@ export const AiShoppingAssistant = () => {
             <button style={styles.chip} onClick={() => handleSendMessage('Breakfast under ₹500')}>
               🥣 Breakfast under ₹500
             </button>
-            <button style={styles.chip} onClick={() => handleSendMessage('Snacks under ₹200')}>
-              🥨 Snacks under ₹200
+
+            <button style={styles.chip} onClick={() => handleSendMessage('Cart items remove kar do')}>
+              🧹 Cart Remove
             </button>
+
+            <button style={styles.chip} onClick={() => handleSendMessage('Cart dikhao')}>
+              🛒 Show Cart ({cartItems.length})
+            </button>
+
             <button style={styles.chip} onClick={() => handleSendMessage('Where is my order?')}>
-              📦 Track My Order
+              📦 Track Order
             </button>
           </div>
 
@@ -219,6 +244,53 @@ export const AiShoppingAssistant = () => {
                   }}
                 >
                   <div style={{ whiteSpace: 'pre-line' }}>{msg.text}</div>
+
+                  {/* Render VIEW_CART intent summary inside AI Chat */}
+                  {msg.intent === 'VIEW_CART' && (
+                    <div style={styles.cartSummaryBox}>
+                      {cartItems.length > 0 ? (
+                        <>
+                          <div style={{ fontWeight: '700', marginBottom: '6px' }}>
+                            🛒 Current Cart Items ({cartItems.length}):
+                          </div>
+                          {cartItems.map((item) => (
+                            <div key={item.id} style={styles.cartSummaryRow}>
+                              <span>{item.name} (x{item.quantity})</span>
+                              <strong>₹{item.price * item.quantity}</strong>
+                            </div>
+                          ))}
+                          <div style={styles.cartTotalDivider}>
+                            <span>Subtotal:</span>
+                            <strong style={{ color: '#059669', fontSize: '14px' }}>₹{itemTotal}</strong>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                            <button
+                              style={styles.openCartBtn}
+                              onClick={() => {
+                                setIsOpen(false);
+                                setIsCartOpen(true);
+                              }}
+                            >
+                              🛒 View Full Cart
+                            </button>
+                            <button
+                              style={styles.clearCartInlineBtn}
+                              onClick={() => {
+                                clearCart();
+                                showToast('Cart cleared 🧹');
+                              }}
+                            >
+                              🧹 Empty Cart
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ textAlign: 'center', color: '#64748b', padding: '8px' }}>
+                          Aapka cart khali hai. 🛒
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Render Product Cards inside Chat */}
                   {msg.products && msg.products.length > 0 && (
@@ -307,7 +379,7 @@ export const AiShoppingAssistant = () => {
                   <span style={styles.dotPulse}>•</span>
                   <span style={{ ...styles.dotPulse, animationDelay: '0.2s' }}>•</span>
                   <span style={{ ...styles.dotPulse, animationDelay: '0.4s' }}>•</span>
-                  <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '6px' }}>Searching FreshMart inventory...</span>
+                  <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '6px' }}>Processing cart action...</span>
                 </div>
               </div>
             )}
@@ -325,7 +397,7 @@ export const AiShoppingAssistant = () => {
           >
             <input
               type="text"
-              placeholder="Ask anything (e.g. 'Milk dikhao', 'Breakfast list under ₹500')..."
+              placeholder="Ask anything (e.g. 'Cart remove karo', 'Milk dikhao')..."
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
               style={styles.input}
@@ -491,6 +563,48 @@ const styles = {
     opacity: 0.7,
     marginTop: '4px',
     textAlign: 'right',
+  },
+  cartSummaryBox: {
+    marginTop: '10px',
+    backgroundColor: '#f1f5f9',
+    borderRadius: '10px',
+    padding: '10px',
+    fontSize: '12px',
+  },
+  cartSummaryRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '3px 0',
+    color: '#334155',
+  },
+  cartTotalDivider: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    borderTop: '1px dashed #cbd5e1',
+    marginTop: '6px',
+    paddingTop: '6px',
+  },
+  openCartBtn: {
+    flex: 1,
+    backgroundColor: '#059669',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '6px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    fontSize: '11px',
+  },
+  clearCartInlineBtn: {
+    flex: 1,
+    backgroundColor: '#ef4444',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '6px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    fontSize: '11px',
   },
   productsContainer: {
     marginTop: '10px',

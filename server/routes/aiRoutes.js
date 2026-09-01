@@ -78,7 +78,72 @@ const processAiIntent = (userQuery, userContext) => {
   const query = userQuery.toLowerCase();
   const products = getProductsData();
 
-  // 1. Order History / Order Status Inquiry
+  // ==========================================
+  // 1. Cart Manipulation Intents (Clear, Remove, View, Add)
+  // ==========================================
+
+  // 1A. SPECIFIC ITEM REMOVE INTENT (e.g. "remove bread from cart", "milk remove karo")
+  if (query.includes('remove') || query.includes('delete') || query.includes('hatao')) {
+    const matchedProduct = products.find(
+      (p) =>
+        query.includes(p.name.toLowerCase()) ||
+        p.name.toLowerCase().split(' ').some((word) => word.length > 3 && query.includes(word))
+    );
+    if (matchedProduct) {
+      return {
+        text: `Thik hai! Maine **${matchedProduct.name}** ko aapke cart se remove kar diya hai! 🗑️`,
+        intent: 'REMOVE_SPECIFIC_ITEM',
+        action: 'REMOVE_SPECIFIC_ITEM',
+        targetProductId: matchedProduct.id,
+        products: [],
+      };
+    }
+  }
+
+  // 1B. CLEAR ALL CART INTENT ("cart remove", "remove items from cart", "cart empty", "clear cart", "cart khali")
+  if (
+    (query.includes('cart') && (query.includes('remove') || query.includes('clear') || query.includes('khali') || query.includes('empty') || query.includes('delete') || query.includes('hataye'))) ||
+    query.includes('clear cart') ||
+    query.includes('empty cart')
+  ) {
+    return {
+      text: 'Thik hai! Maine aapke Cart se saare items remove kar diye hain! 🛒🧹\n\nAap jab chahein naye fresh products browse karke cart mein add kar sakte hain.',
+      intent: 'CLEAR_CART',
+      action: 'CLEAR_CART',
+      products: [],
+    };
+  }
+
+  // 1C. VIEW CART INTENT ("cart dikhao", "show cart", "what is in my cart", "cart total")
+  if (query.includes('show cart') || query.includes('cart dikhao') || query.includes('view cart') || query.includes('cart total') || query.includes('what is in my cart')) {
+    return {
+      text: 'Aapke current Cart ka summary yahan hai! Aap Cart Drawer open karke quantities change ya checkout kar sakte hain:',
+      intent: 'VIEW_CART',
+      action: 'VIEW_CART',
+      products: [],
+    };
+  }
+
+  // 1D. ADD INTENT (e.g. "add milk to cart", "2 bread add karo", "buy milk")
+  if (query.includes('add') || query.includes('dalo') || query.includes('buy')) {
+    const matchedProduct = products.find((p) =>
+      query.includes(p.name.toLowerCase()) ||
+      p.name.toLowerCase().split(' ').some((word) => word.length > 3 && query.includes(word))
+    );
+    if (matchedProduct) {
+      return {
+        text: `Maine **${matchedProduct.name}** ko aapke cart mein add kar diya hai! 🛒✨`,
+        intent: 'ADD_PRODUCT',
+        action: 'ADD_PRODUCT',
+        products: [matchedProduct],
+        targetProductId: matchedProduct.id,
+      };
+    }
+  }
+
+  // ==========================================
+  // 2. Order History / Order Status Inquiry
+  // ==========================================
   if (
     query.includes('order') ||
     query.includes('kaha hai') ||
@@ -119,7 +184,9 @@ const processAiIntent = (userQuery, userContext) => {
     };
   }
 
-  // 2. Budget / Meal Plan Shopping List
+  // ==========================================
+  // 3. Budget / Meal Plan Shopping List
+  // ==========================================
   if (query.includes('breakfast') || query.includes('party') || query.includes('list') || query.includes('under ₹') || query.includes('under rs')) {
     let budget = 500;
     const match = query.match(/(?:under|below|budget|rs\.?|₹)\s*(\d+)/i);
@@ -154,7 +221,9 @@ const processAiIntent = (userQuery, userContext) => {
     };
   }
 
-  // 3. Product Search / Category Inquiry (e.g., "Milk dikhao", "Find snacks", "Organic products")
+  // ==========================================
+  // 4. Product Search / Category Inquiry (e.g., "Milk dikhao", "Find snacks", "Organic products")
+  // ==========================================
   let searchResults = [];
 
   if (query.includes('milk') || query.includes('doodh')) {
@@ -187,7 +256,7 @@ const processAiIntent = (userQuery, userContext) => {
     };
   }
 
-  // 4. Default Helpful Assistant Response
+  // 5. Default Helpful Assistant Response
   const featured = products.slice(0, 3);
   return {
     text: `I couldn't find an exact match for "${userQuery}". Here are some of our popular best-selling grocery items available for 10-15 min express delivery:`,
