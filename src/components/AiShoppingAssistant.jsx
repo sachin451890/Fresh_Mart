@@ -261,9 +261,9 @@ export const AiShoppingAssistant = () => {
 
       {/* Main AI Chat Widget */}
       {isOpen && (
-        <div style={styles.chatWindow}>
+        <div style={styles.chatWindow} className="ai-chat-window">
           {/* Header */}
-          <div style={styles.header}>
+          <div style={styles.header} className="ai-chat-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={styles.avatarCircle}>🤖</div>
               <div>

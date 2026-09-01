@@ -6326,3 +6326,112 @@ button, input, select {
   font-weight: 900 !important;
   color: var(--text-main) !important;
 }
+
+/* ==========================================================================
+   AI Assistant Mobile & All-Screen Responsive Styles
+   ========================================================================== */
+.ai-trigger-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ai-trigger-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.5);
+  background-color: #047857;
+}
+
+.ai-trigger-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Tablet & Mobile Screens (< 768px) */
+@media (max-width: 767px) {
+  .ai-trigger-btn {
+    bottom: 84px; /* Lifted above mobile bottom bar */
+    right: 16px;
+    padding: 10px 16px;
+    font-size: 13px;
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.45);
+  }
+}
+
+/* Mobile Devices (< 640px) */
+@media (max-width: 639px) {
+  .ai-trigger-btn {
+    bottom: 80px;
+    right: 14px;
+    padding: 10px 14px;
+    font-size: 12px;
+    border-radius: 24px;
+  }
+
+  /* Full Screen Mobile AI Assistant Drawer */
+  .ai-chat-window {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    z-index: 99999 !important;
+    box-shadow: none !important;
+  }
+
+  .ai-chat-header {
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
+}
+
+/* Compact Mobile Screens (< 380px) */
+@media (max-width: 379px) {
+  .ai-trigger-btn {
+    bottom: 76px;
+    right: 10px;
+    padding: 8px 12px;
+  }
+
+  .ai-trigger-label {
+    font-size: 11px;
+  }
+}
+
+/* Large Screens & 4K Monitors (1440px+) */
+@media (min-width: 1440px) {
+  .ai-trigger-btn {
+    bottom: 32px;
+    right: 32px;
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+
+  .ai-chat-window {
+    width: 440px;
+    height: 620px;
+    bottom: 32px;
+    right: 32px;
+  }
+}
+
