@@ -22,7 +22,7 @@ export const AiShoppingAssistant = () => {
     {
       id: 'welcome-1',
       sender: 'assistant',
-      text: 'Namaste! 👋 Main aapka **FreshMart AI Shopping Assistant** hoon. Aaj aapko kya grocery item chahiye?\n\nAap Hindi, English ya Hinglish mein puch sakte hain!',
+      text: 'Namaste! 👋 Main aapka **FreshMart AI Shopping Assistant** hoon. Aaj aapko kya grocery item chahiye?\n\nAap Voice 🎙️ ya Text 💬 se Hindi, English ya Hinglish mein bol sakte hain!',
       products: [],
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
@@ -30,9 +30,69 @@ export const AiShoppingAssistant = () => {
 
   const [inputQuery, setInputQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
 
-  // Auto scroll to latest message
+  // Initialize Web Speech Recognition
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+      setVoiceSupported(true);
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'hi-IN'; // Native support for Hindi, Hinglish, & English
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        setInputQuery(transcript);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.onerror = (err) => {
+        setIsListening(false);
+        if (err.error === 'not-allowed') {
+          showToast('⚠️ Microphone permission denied in browser settings');
+        }
+      };
+
+      recognitionRef.current = recognition;
+    }
+  }, [showToast]);
+
+  const toggleVoiceRecognition = () => {
+    if (!recognitionRef.current) {
+      showToast('⚠️ Voice Recognition is not supported in this browser. Try Chrome/Edge.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      try {
+        setInputQuery('');
+        recognitionRef.current.start();
+        setIsListening(true);
+        showToast('🎙️ Listening... Speak now (e.g. "Milk dikhao", "Cart remove karo")');
+      } catch (err) {
+        console.warn('Voice start error:', err);
+      }
+    }
+  };
+
+  // Auto scroll to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -46,6 +106,11 @@ export const AiShoppingAssistant = () => {
   const handleSendMessage = async (textToSend) => {
     const query = (textToSend || inputQuery).trim();
     if (!query || isLoading) return;
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
 
     const userMsg = {
       id: `user-${Date.now()}`,
@@ -161,11 +226,11 @@ export const AiShoppingAssistant = () => {
         <button
           className="ai-trigger-btn"
           onClick={() => setIsOpen(true)}
-          title="Ask FreshMart AI Assistant"
+          title="Ask FreshMart AI Assistant (Voice / Text)"
           style={styles.triggerBtn}
         >
           <span style={{ fontSize: '22px' }}>🤖</span>
-          <span style={styles.triggerLabel}>AI Assistant</span>
+          <span style={styles.triggerLabel}>AI Voice & Chat</span>
           <span style={styles.badgePulse}>NEW</span>
         </button>
       )}
@@ -179,7 +244,7 @@ export const AiShoppingAssistant = () => {
               <div style={styles.avatarCircle}>🤖</div>
               <div>
                 <div style={styles.headerTitle}>FreshMart AI Assistant</div>
-                <div style={styles.headerSub}>⚡ 10-15 Min Smart Grocery Helper</div>
+                <div style={styles.headerSub}>🎙️ Voice & Text Smart Grocery Helper</div>
               </div>
             </div>
 
@@ -379,13 +444,20 @@ export const AiShoppingAssistant = () => {
                   <span style={styles.dotPulse}>•</span>
                   <span style={{ ...styles.dotPulse, animationDelay: '0.2s' }}>•</span>
                   <span style={{ ...styles.dotPulse, animationDelay: '0.4s' }}>•</span>
-                  <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '6px' }}>Processing cart action...</span>
+                  <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '6px' }}>Processing query...</span>
                 </div>
               </div>
             )}
 
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Voice Active Banner Indicator */}
+          {isListening && (
+            <div style={styles.voiceActiveBanner}>
+              <span className="pulse-red-dot">🔴</span> Listening... Speak your grocery query now!
+            </div>
+          )}
 
           {/* Footer Input Form */}
           <form
@@ -395,12 +467,28 @@ export const AiShoppingAssistant = () => {
             }}
             style={styles.footer}
           >
+            {/* Voice Recognition Mic Button */}
+            <button
+              type="button"
+              onClick={toggleVoiceRecognition}
+              style={{
+                ...styles.micBtn,
+                ...(isListening ? styles.micBtnActive : {}),
+              }}
+              title={isListening ? 'Stop Listening' : 'Speak Command (Voice Recognition)'}
+            >
+              🎙️
+            </button>
+
             <input
               type="text"
-              placeholder="Ask anything (e.g. 'Cart remove karo', 'Milk dikhao')..."
+              placeholder={isListening ? 'Listening to your voice...' : "Speak or type (e.g. 'Milk dikhao')..."}
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
-              style={styles.input}
+              style={{
+                ...styles.input,
+                ...(isListening ? { borderColor: '#ef4444', backgroundColor: '#fef2f2' } : {}),
+              }}
             />
             <button
               type="submit"
@@ -698,12 +786,45 @@ const styles = {
     cursor: 'pointer',
     boxShadow: '0 2px 6px rgba(21, 128, 61, 0.2)',
   },
+  voiceActiveBanner: {
+    backgroundColor: '#fef2f2',
+    color: '#dc2626',
+    borderTop: '1px solid #fecaca',
+    padding: '6px 12px',
+    fontSize: '12px',
+    fontWeight: '700',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
   footer: {
     display: 'flex',
     gap: '8px',
     padding: '12px',
     backgroundColor: '#ffffff',
     borderTop: '1px solid #e2e8f0',
+    alignItems: 'center',
+  },
+  micBtn: {
+    width: '38px',
+    height: '38px',
+    borderRadius: '50%',
+    backgroundColor: '#f1f5f9',
+    color: '#0f172a',
+    border: '1px solid #cbd5e1',
+    fontWeight: '700',
+    fontSize: '16px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s ease',
+  },
+  micBtnActive: {
+    backgroundColor: '#ef4444',
+    color: '#ffffff',
+    borderColor: '#dc2626',
+    boxShadow: '0 0 0 4px rgba(239, 68, 68, 0.3)',
   },
   input: {
     flex: 1,
@@ -712,6 +833,7 @@ const styles = {
     border: '1px solid #cbd5e1',
     fontSize: '13px',
     outline: 'none',
+    transition: 'all 0.2s ease',
   },
   sendBtn: {
     width: '40px',
