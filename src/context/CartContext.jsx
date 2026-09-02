@@ -1,11 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { couponsList } from '../data/products';
+import { couponsList, products as initialProducts } from '../data/products';
 import { supabase, getSupabaseConfig } from '../lib/supabaseClient';
 import { realtimeProductService } from '../services/realtimeProductService';
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+  // 0. Dynamic Product Catalog State (Realtime Enabled)
+  const [productsList, setProductsList] = useState(initialProducts);
+
   // 1. Cart State
   const [cartItems, setCartItems] = useState(() => {
     try {
@@ -308,6 +311,26 @@ export const CartProvider = ({ children }) => {
       const { product, productId } = event;
       if (!product || !productId) return;
 
+      // Update global catalog state in real-time
+      setProductsList((prevList) =>
+        prevList.map((p) =>
+          String(p.id) === String(productId)
+            ? {
+                ...p,
+                price: Number(product.price),
+                mrp: Number(product.mrp || product.price),
+                stock: Number(product.stockQuantity ?? product.stock ?? 50),
+                stock_quantity: Number(product.stockQuantity ?? product.stock ?? 50),
+                isAvailable: Boolean(product.isAvailable),
+                is_available: Boolean(product.isAvailable),
+                inStock: Boolean(product.isAvailable),
+                availabilityStatus: product.availabilityStatus,
+              }
+            : p
+        )
+      );
+
+      // Update active cart items
       setCartItems((prevCart) => {
         const existingIndex = prevCart.findIndex((item) => String(item.id) === String(productId));
         if (existingIndex === -1) return prevCart;
@@ -340,6 +363,14 @@ export const CartProvider = ({ children }) => {
 
     return () => unsubscribe();
   }, [showToast]);
+
+  const updateProductCatalogItem = (productId, updates) => {
+    const pId = String(productId);
+    setProductsList((prevList) =>
+      prevList.map((p) => (String(p.id) === pId ? { ...p, ...updates } : p))
+    );
+  };
+
 
 
   // Persist location
@@ -749,6 +780,8 @@ export const CartProvider = ({ children }) => {
   return (
     <CartContext.Provider
       value={{
+        productsList,
+        updateProductCatalogItem,
         cartItems,
         totalItems,
         itemTotal,

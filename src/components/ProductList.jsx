@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCart } from '../context/CartContext';
-import { products } from '../data/products';
 import { ProductCard } from './ProductCard';
 import { SkeletonCard } from './SkeletonCard';
 
 export const ProductList = () => {
   const {
+    productsList = [],
     selectedCategory,
     setSelectedCategory,
     selectedSubCategory,
@@ -30,14 +30,15 @@ export const ProductList = () => {
   // Extract unique subcategories for active category
   const subCategories = useMemo(() => {
     if (selectedCategory === 'All') return [];
-    const catProducts = products.filter((p) => p.category === selectedCategory);
+    const catProducts = productsList.filter((p) => p.category === selectedCategory);
     const unique = ['All', ...new Set(catProducts.map((p) => p.subCategory).filter(Boolean))];
     return unique.length > 2 ? unique : [];
-  }, [selectedCategory]);
+  }, [selectedCategory, productsList]);
 
   // Filter & Sort Products client-side
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    let result = [...productsList];
+
 
     // 1. Category Filter
     if (selectedCategory !== 'All') {
@@ -81,7 +82,7 @@ export const ProductList = () => {
     }
 
     return result;
-  }, [selectedCategory, selectedSubCategory, searchQuery, sortBy]);
+  }, [productsList, selectedCategory, selectedSubCategory, searchQuery, sortBy]);
 
   const handleResetFilters = () => {
     setSelectedCategory('All');

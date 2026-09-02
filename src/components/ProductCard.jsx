@@ -14,16 +14,22 @@ export const ProductCard = ({ product }) => {
   const quantity = getItemQuantity(product.id);
   const isWishlisted = wishlist.includes(String(product.id));
 
+  // Availability & Stock calculation (Goals #3 & #13)
+  const isAvailable = product.isAvailable ?? product.is_available ?? (product.stock === undefined || product.stock > 0);
+  const stockCount = parseInt(product.stockQuantity ?? product.stock_quantity ?? product.stock ?? 50, 10);
+  const isOutOfStock = !isAvailable || stockCount <= 0;
+  const isLowStock = isAvailable && stockCount > 0 && stockCount <= 15;
+
   return (
-    <div className="product-card">
+    <div className={`product-card ${isOutOfStock ? 'out-of-stock-card' : ''}`}>
       {/* Product Image & Badges */}
       <div
         className="product-img-wrap"
         onClick={() => openProductDetails && openProductDetails(product)}
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: 'pointer', opacity: isOutOfStock ? 0.6 : 1 }}
       >
         <img
-          src={product.image}
+          src={product.image || product.imageUrl}
           alt={product.name}
           loading="lazy"
           onError={(e) => {
@@ -31,13 +37,19 @@ export const ProductCard = ({ product }) => {
             e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80';
           }}
         />
-        {product.discount > 0 && (
+        {product.discount > 0 && !isOutOfStock && (
           <span className="discount-badge">{product.discount}% OFF</span>
         )}
-        {product.badge && (
-          <span className="tag-badge">{product.badge}</span>
-        )}
         
+        {/* Real-time Availability Badges (Blinkit & Zepto style) */}
+        {isOutOfStock ? (
+          <span className="stock-badge out-of-stock-badge">OUT OF STOCK</span>
+        ) : isLowStock ? (
+          <span className="stock-badge low-stock-badge">⚡ Only {stockCount} Left</span>
+        ) : product.badge ? (
+          <span className="tag-badge">{product.badge}</span>
+        ) : null}
+
         {/* Wishlist Heart Icon */}
         <button
           className="card-wishlist-btn"
@@ -79,7 +91,7 @@ export const ProductCard = ({ product }) => {
         >
           {product.name}
         </h4>
-        <span className="product-unit">{product.weight}</span>
+        <span className="product-unit">{product.weight || product.unit || '1 unit'}</span>
 
         <div className="product-rating">
           <span className="star-icon">⭐</span>
@@ -89,14 +101,31 @@ export const ProductCard = ({ product }) => {
 
         <div className="product-price-row">
           <div className="price-wrap">
-            <span className="current-price">₹{product.price}</span>
+            <span key={product.price} className="current-price realtime-price-flash">₹{product.price}</span>
             {product.mrp && product.mrp > product.price && (
               <span className="original-price">₹{product.mrp}</span>
             )}
           </div>
 
           <div className="product-actions-wrap">
-            {quantity > 0 ? (
+            {isOutOfStock ? (
+              <button
+                className="btn-add-product disabled-out-of-stock"
+                disabled
+                style={{
+                  backgroundColor: '#cbd5e1',
+                  color: '#475569',
+                  borderColor: '#cbd5e1',
+                  cursor: 'not-allowed',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  padding: '6px 10px',
+                  borderRadius: '8px',
+                }}
+              >
+                OUT OF STOCK
+              </button>
+            ) : quantity > 0 ? (
               <div className="card-quantity-stepper">
                 <button
                   className="stepper-btn"

@@ -6536,6 +6536,50 @@ button, input, select {
   box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35) !important;
 }
 
+/* ==========================================================================
+   Blinkit & Zepto Real-Time Product Availability & Price Animation Badges
+   ========================================================================== */
+.stock-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.out-of-stock-badge {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.low-stock-badge {
+  background-color: #d97706 !important;
+  color: #ffffff !important;
+  animation: pulseLowStock 2s infinite ease-in-out;
+}
+
+@keyframes pulseLowStock {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.realtime-price-flash {
+  transition: color 0.3s ease, transform 0.2s ease;
+  animation: pricePulse 0.8s ease-in-out;
+}
+
+@keyframes pricePulse {
+  0% { color: #059669; transform: scale(1.2); }
+  100% { color: inherit; transform: scale(1); }
+}
+
+
 
 
 

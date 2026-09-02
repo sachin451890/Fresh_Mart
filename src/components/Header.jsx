@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
-import { products } from '../data/products';
 
 export const Header = () => {
   const {
+    productsList = [],
     totalItems,
     itemTotal,
     grandTotal,
@@ -38,7 +38,7 @@ export const Header = () => {
 
   // Real-time search suggestions (matching products)
   const searchResults = searchQuery.trim()
-    ? products.filter(p =>
+    ? productsList.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
         p.category.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
         (p.subCategory && p.subCategory.toLowerCase().includes(searchQuery.toLowerCase().trim()))

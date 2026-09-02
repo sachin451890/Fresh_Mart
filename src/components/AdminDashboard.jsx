@@ -4,23 +4,22 @@ import { products as initialProducts } from '../data/products';
 import { supabase } from '../lib/supabaseClient';
 
 export const AdminDashboard = ({ isOpen, onClose }) => {
-  const { pastOrders, showToast } = useCart();
+  const { pastOrders, showToast, productsList = [], updateProductCatalogItem } = useCart();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'products' | 'orders' | 'inventory'
-  const [productList, setProductList] = useState(initialProducts);
 
   if (!isOpen) return null;
 
   // Metric Calculations
   const totalRevenue = pastOrders.reduce((sum, ord) => sum + (Number(ord.grandTotal) || 0), 0);
-  const lowStockCount = productList.filter((p) => (p.stock || p.stock_quantity || 45) < 15).length;
+  const lowStockCount = productsList.filter((p) => (p.stock || p.stock_quantity || 45) < 15).length;
 
   const handleUpdatePrice = async (productId, newPrice) => {
     const val = parseFloat(newPrice);
     if (isNaN(val) || val < 0) return;
 
-    setProductList((prev) =>
-      prev.map((p) => (String(p.id) === String(productId) ? { ...p, price: val } : p))
-    );
+    if (updateProductCatalogItem) {
+      updateProductCatalogItem(productId, { price: val });
+    }
 
     // Persist to Supabase & emit Realtime update
     try {
@@ -39,11 +38,16 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
     const qty = Math.max(0, parseInt(newStock) || 0);
     const isAvail = qty > 0;
 
-    setProductList((prev) =>
-      prev.map((p) =>
-        String(p.id) === String(productId) ? { ...p, stock: qty, stock_quantity: qty, is_available: isAvail } : p
-      )
-    );
+    if (updateProductCatalogItem) {
+      updateProductCatalogItem(productId, {
+        stock: qty,
+        stock_quantity: qty,
+        stockQuantity: qty,
+        is_available: isAvail,
+        isAvailable: isAvail,
+        inStock: isAvail,
+      });
+    }
 
     try {
       await supabase
@@ -60,11 +64,13 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const handleToggleAvailable = async (productId, currentStatus) => {
     const nextStatus = !currentStatus;
 
-    setProductList((prev) =>
-      prev.map((p) =>
-        String(p.id) === String(productId) ? { ...p, is_available: nextStatus, inStock: nextStatus } : p
-      )
-    );
+    if (updateProductCatalogItem) {
+      updateProductCatalogItem(productId, {
+        is_available: nextStatus,
+        isAvailable: nextStatus,
+        inStock: nextStatus,
+      });
+    }
 
     try {
       await supabase
@@ -120,7 +126,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
             style={{ ...styles.tabBtn, ...(activeTab === 'products' ? styles.activeTabBtn : {}) }}
             onClick={() => setActiveTab('products')}
           >
-            🍎 Catalog Management ({productList.length})
+            🍎 Catalog Management ({productsList.length})
           </button>
           <button
             className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
@@ -152,7 +158,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
 
                 <div style={styles.metricCard}>
                   <div style={styles.metricLabel}>Active Products</div>
-                  <div style={styles.metricValue}>{productList.length}</div>
+                  <div style={styles.metricValue}>{productsList.length}</div>
                   <div style={styles.metricSub}>Across 8 grocery categories</div>
                 </div>
 
@@ -192,7 +198,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {productList.map((prod) => (
+                    {productsList.map((prod) => (
                       <tr key={prod.id} style={styles.tr}>
                         <td style={styles.td}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -275,14 +281,14 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
           {activeTab === 'inventory' && (
             <div>
               <h4 style={{ margin: '0 0 16px 0', color: '#dc2626' }}>⚠️ Low Inventory Stock Watchlist</h4>
-              {productList.filter((p) => (p.stock || 45) < 15).length === 0 ? (
+              {productsList.filter((p) => (p.stock || p.stock_quantity || 45) < 15).length === 0 ? (
                 <div style={styles.emptyNotice}>
                   ✅ All product inventory levels are healthy! No low stock warnings.
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {productList
-                    .filter((p) => (p.stock || 45) < 15)
+                  {productsList
+                    .filter((p) => (p.stock || p.stock_quantity || 45) < 15)
                     .map((prod) => (
                       <div key={prod.id} style={styles.alertCard}>
                         <div>
