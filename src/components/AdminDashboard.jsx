@@ -1,33 +1,89 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { products as initialProducts } from '../data/products';
+import { supabase } from '../lib/supabaseClient';
 
 export const AdminDashboard = ({ isOpen, onClose }) => {
   const { pastOrders, showToast } = useCart();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'products' | 'orders' | 'inventory'
   const [productList, setProductList] = useState(initialProducts);
-  const [stockFilter, setStockFilter] = useState('all');
 
   if (!isOpen) return null;
 
   // Metric Calculations
   const totalRevenue = pastOrders.reduce((sum, ord) => sum + (Number(ord.grandTotal) || 0), 0);
-  const lowStockCount = productList.filter((p) => (p.stock || 45) < 15).length;
+  const lowStockCount = productList.filter((p) => (p.stock || p.stock_quantity || 45) < 15).length;
 
-  const handleUpdateStock = (productId, newStock) => {
-    const qty = Math.max(0, parseInt(newStock) || 0);
+  const handleUpdatePrice = async (productId, newPrice) => {
+    const val = parseFloat(newPrice);
+    if (isNaN(val) || val < 0) return;
+
     setProductList((prev) =>
-      prev.map((p) => (String(p.id) === String(productId) ? { ...p, stock: qty } : p))
+      prev.map((p) => (String(p.id) === String(productId) ? { ...p, price: val } : p))
     );
-    showToast(`Updated inventory stock for product! 📦`);
+
+    // Persist to Supabase & emit Realtime update
+    try {
+      await supabase
+        .from('products')
+        .update({ price: val, updated_at: new Date().toISOString() })
+        .eq('id', String(productId));
+    } catch (e) {
+      // Fallback
+    }
+
+    showToast(`Updated product price to ₹${val}! 🏷️`);
+  };
+
+  const handleUpdateStock = async (productId, newStock) => {
+    const qty = Math.max(0, parseInt(newStock) || 0);
+    const isAvail = qty > 0;
+
+    setProductList((prev) =>
+      prev.map((p) =>
+        String(p.id) === String(productId) ? { ...p, stock: qty, stock_quantity: qty, is_available: isAvail } : p
+      )
+    );
+
+    try {
+      await supabase
+        .from('products')
+        .update({ stock_quantity: qty, is_available: isAvail, updated_at: new Date().toISOString() })
+        .eq('id', String(productId));
+    } catch (e) {
+      // Fallback
+    }
+
+    showToast(`Updated inventory stock to ${qty} units! 📦`);
+  };
+
+  const handleToggleAvailable = async (productId, currentStatus) => {
+    const nextStatus = !currentStatus;
+
+    setProductList((prev) =>
+      prev.map((p) =>
+        String(p.id) === String(productId) ? { ...p, is_available: nextStatus, inStock: nextStatus } : p
+      )
+    );
+
+    try {
+      await supabase
+        .from('products')
+        .update({ is_available: nextStatus, updated_at: new Date().toISOString() })
+        .eq('id', String(productId));
+    } catch (e) {
+      // Fallback
+    }
+
+    showToast(`Product availability set to ${nextStatus ? 'Available ✅' : 'Out of Stock ❌'}`);
   };
 
   const handleRestockQuick = (productId) => {
-    setProductList((prev) =>
-      prev.map((p) => (String(p.id) === String(productId) ? { ...p, stock: (p.stock || 45) + 50 } : p))
-    );
-    showToast(`Restocked +50 units! 🚚`);
+    const prod = productList.find((p) => String(p.id) === String(productId));
+    const currentQty = prod?.stock || prod?.stock_quantity || 0;
+    handleUpdateStock(productId, currentQty + 50);
   };
+
 
   return (
     <div className="modal-overlay open" onClick={onClose}>
@@ -148,12 +204,22 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                           </div>
                         </td>
                         <td style={styles.td}>{prod.category}</td>
-                        <td style={styles.td}><strong style={{ color: '#0f172a' }}>₹{prod.price}</strong></td>
+                        <td style={styles.td}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                            <span style={{ fontWeight: '700', color: '#0f172a' }}>₹</span>
+                            <input
+                              type="number"
+                              value={prod.price}
+                              onChange={(e) => handleUpdatePrice(prod.id, e.target.value)}
+                              style={{ ...styles.stockInput, width: '68px', fontWeight: '700' }}
+                            />
+                          </div>
+                        </td>
                         <td style={styles.td}><span style={{ textDecoration: 'line-through', color: '#94a3b8' }}>₹{prod.mrp || prod.price}</span></td>
                         <td style={styles.td}>
                           <input
                             type="number"
-                            value={prod.stock || 45}
+                            value={prod.stock ?? prod.stock_quantity ?? 45}
                             onChange={(e) => handleUpdateStock(prod.id, e.target.value)}
                             style={styles.stockInput}
                           />

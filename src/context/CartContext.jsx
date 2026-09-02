@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { couponsList } from '../data/products';
 import { supabase, getSupabaseConfig } from '../lib/supabaseClient';
+import { realtimeProductService } from '../services/realtimeProductService';
 
 const CartContext = createContext();
 
@@ -300,6 +301,46 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('freshmart_react_cart', JSON.stringify(cartItems));
   }, [cartItems]);
+
+  // Real-Time Product Pricing & Inventory Cart Synchronization (Goals #2 & #6)
+  useEffect(() => {
+    const unsubscribe = realtimeProductService.subscribe((event) => {
+      const { product, productId } = event;
+      if (!product || !productId) return;
+
+      setCartItems((prevCart) => {
+        const existingIndex = prevCart.findIndex((item) => String(item.id) === String(productId));
+        if (existingIndex === -1) return prevCart;
+
+        const currentItem = prevCart[existingIndex];
+        const oldPrice = Number(currentItem.price);
+        const newPrice = Number(product.price);
+
+        if (oldPrice !== newPrice) {
+          showToast(`Product price updated from ₹${oldPrice} to ₹${newPrice}`);
+        }
+
+        if (!product.isAvailable || product.stockQuantity <= 0) {
+          showToast(`⚠️ "${product.name}" is currently out of stock.`);
+        }
+
+        return prevCart.map((item) =>
+          String(item.id) === String(productId)
+            ? {
+                ...item,
+                price: newPrice,
+                mrp: Number(product.mrp || newPrice),
+                stockQuantity: product.stockQuantity,
+                isAvailable: product.isAvailable,
+              }
+            : item
+        );
+      });
+    });
+
+    return () => unsubscribe();
+  }, [showToast]);
+
 
   // Persist location
   useEffect(() => {
