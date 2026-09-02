@@ -95,6 +95,10 @@ export const LoginModal = () => {
   };
 
   const closeModal = () => {
+    if (!user) {
+      showToast('🔒 Mandatory Login Required: Please login or create an account to enter FreshMart.');
+      return;
+    }
     setIsLoginOpen(false);
     if (window.location.hash) {
       window.history.replaceState(null, '', window.location.pathname);
@@ -303,6 +307,29 @@ export const LoginModal = () => {
         className="modal-dialog auth-dialog"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mandatory Login Top Banner */}
+        {!user && (
+          <div
+            className="mandatory-login-banner"
+            style={{
+              backgroundColor: '#0f172a',
+              color: '#38bdf8',
+              padding: '12px 16px',
+              textAlign: 'center',
+              fontSize: '13px',
+              fontWeight: '700',
+              borderBottom: '2px solid #059669',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+            }}
+          >
+            <span>🔒</span>
+            <span>Mandatory Access Lock: Please Login or Create an Account to enter FreshMart!</span>
+          </div>
+        )}
+
         {/* Modal Top Header */}
         <div className="auth-dialog-header">
           <div className="auth-brand-badge">
@@ -310,14 +337,16 @@ export const LoginModal = () => {
             <span className="brand-badge-text">FreshMart 10-15 Min Express</span>
           </div>
 
-          {/* Close Button */}
-          <button
-            className="modal-close-btn auth-close-btn"
-            onClick={closeModal}
-            title="Close"
-          >
-            ✕
-          </button>
+          {/* Close Button (Only shown when user is already logged in) */}
+          {user && (
+            <button
+              className="modal-close-btn auth-close-btn"
+              onClick={closeModal}
+              title="Close"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
         <div className="modal-body auth-modal-body">
@@ -813,16 +842,18 @@ export const LoginModal = () => {
             </>
           )}
 
-          {/* Bottom Return to Homepage Link */}
-          <div className="auth-modal-footer-nav">
-            <button
-              type="button"
-              className="btn-return-home"
-              onClick={closeModal}
-            >
-              ← Return to FreshMart Homepage 🥦
-            </button>
-          </div>
+          {/* Bottom Return to Homepage Link (Only when logged in) */}
+          {user && (
+            <div className="auth-modal-footer-nav">
+              <button
+                type="button"
+                className="btn-return-home"
+                onClick={closeModal}
+              >
+                ← Return to FreshMart Homepage 🥦
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

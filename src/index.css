@@ -6579,6 +6579,27 @@ button, input, select {
   100% { color: inherit; transform: scale(1); }
 }
 
+/* ==========================================================================
+   Mandatory Login Access Lock & Screen Blur
+   ========================================================================== */
+.app-root.auth-locked .top-announcement,
+.app-root.auth-locked .main-header,
+.app-root.auth-locked .delivery-time-banner,
+.app-root.auth-locked .main-content,
+.app-root.auth-locked .app-footer,
+.app-root.auth-locked .ai-trigger-btn {
+  filter: blur(8px) brightness(0.65) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  transition: filter 0.3s ease !important;
+}
+
+.auth-modal-overlay.open {
+  z-index: 999999 !important;
+  backdrop-filter: blur(12px) !important;
+  background-color: rgba(15, 23, 42, 0.85) !important;
+}
+
 
 
 

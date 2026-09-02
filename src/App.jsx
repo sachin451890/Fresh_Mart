@@ -21,6 +21,8 @@ import { Toast } from './components/Toast';
 
 export function App() {
   const {
+    user,
+    isLoginOpen,
     selectedProductDetails,
     isProductDetailsOpen,
     closeProductDetails,
@@ -29,9 +31,11 @@ export function App() {
     isAdmin,
   } = useCart();
 
+  const isAuthLocked = !user && isLoginOpen;
+
   return (
     <ErrorBoundary>
-      <div className="app-root">
+      <div className={`app-root ${isAuthLocked ? 'auth-locked' : ''}`}>
         {/* 1. Header & Announcement */}
         <Header />
 
