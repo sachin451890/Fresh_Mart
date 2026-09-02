@@ -778,7 +778,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // 5. Supabase Logout
+  // 5. Supabase Logout - Immediately opens Login Modal & enforces access lock
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -788,8 +788,10 @@ export const CartProvider = ({ children }) => {
     setUser(null);
     setAuthSession(null);
     localStorage.removeItem('freshmart_react_user');
-    setIsLoginOpen(false);
-    showToast('Logged out successfully. Come back soon! 👋');
+    setIsAdminOpen(false);
+    setAuthModalView('login');
+    setIsLoginOpen(true);
+    showToast('Logged out successfully. Please login to enter FreshMart! 👋');
   };
 
   // 6. Place Order

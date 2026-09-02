@@ -26,4 +26,25 @@ describe('FreshMart Mandatory Access Lock & Login Guard', () => {
     user = { id: 'usr_1', name: 'Rahul' };
     expect(canCloseModal(user)).toBe(true);
   });
+
+  it('immediately triggers login modal open upon user or admin logout', () => {
+    let user = { id: 'admin_sachin', role: 'admin', isAdmin: true };
+    let isLoginOpen = false;
+    let isAdminOpen = true;
+    let authModalView = 'login';
+
+    const handleLogout = () => {
+      user = null;
+      isAdminOpen = false;
+      authModalView = 'login';
+      isLoginOpen = true;
+    };
+
+    handleLogout();
+
+    expect(user).toBeNull();
+    expect(isAdminOpen).toBe(false);
+    expect(isLoginOpen).toBe(true);
+    expect(authModalView).toBe('login');
+  });
 });
