@@ -16,6 +16,8 @@ export const Header = () => {
     setIsLocationOpen,
     setIsOrdersHistoryOpen,
     setIsAdminOpen,
+    isAdmin,
+    openAdminConsole,
     deliveryLocation,
     isDetectingLocation,
     searchQuery,
@@ -315,23 +317,27 @@ export const Header = () => {
                         <div>
                           <strong>Welcome, {(user.name || user.email || 'User').split(' ')[0]}</strong>
                           <p>{user.email || (user.phone ? `+91 ${user.phone}` : 'Active Member')}</p>
-                          <span className="member-tag-mini">⭐ Prime Member</span>
+                          <span className={`member-tag-mini ${isAdmin ? 'admin-tag-mini' : ''}`}>
+                            {isAdmin ? '👑 FreshMart Admin' : '⭐ Prime Member'}
+                          </span>
                         </div>
                       </div>
                       <div className="user-dropdown-divider"></div>
-                      <button
-                        className="user-dropdown-item"
-                        onClick={() => {
-                          setShowUserDropdown(false);
-                          if (setIsAdminOpen) setIsAdminOpen(true);
-                        }}
-                      >
-                        <span className="item-left-content">
-                          <span className="item-emoji">🛡️</span>
-                          <span>Admin Console</span>
-                        </span>
-                        <span>›</span>
-                      </button>
+                      {isAdmin && (
+                        <button
+                          className="user-dropdown-item admin-console-item"
+                          onClick={() => {
+                            setShowUserDropdown(false);
+                            openAdminConsole();
+                          }}
+                        >
+                          <span className="item-left-content">
+                            <span className="item-emoji">🛡️</span>
+                            <strong style={{ color: '#059669' }}>Admin Console</strong>
+                          </span>
+                          <span>›</span>
+                        </button>
+                      )}
                       <button
                         className="user-dropdown-item logout-action-btn"
                         onClick={() => {

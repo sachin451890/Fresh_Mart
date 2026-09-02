@@ -175,6 +175,32 @@ export const CartProvider = ({ children }) => {
   });
 
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+
+  // Admin Role Verification
+  const isAdmin = Boolean(
+    user &&
+      (user.role === 'admin' ||
+        user.isAdmin === true ||
+        (user.email &&
+          (user.email.toLowerCase().includes('admin') ||
+            user.email.toLowerCase() === 'sachin451890@gmail.com' ||
+            user.email.toLowerCase() === 'admin@freshmart.com' ||
+            user.email.toLowerCase() === 'admin@freshmart.in')))
+  );
+
+  const openAdminConsole = () => {
+    if (!user) {
+      showToast('⚠️ Please log in with an Admin account first.');
+      setIsLoginOpen(true);
+      return false;
+    }
+    if (!isAdmin) {
+      showToast('⛔ Access Denied! Only authorized Administrators can access Admin Console.');
+      return false;
+    }
+    setIsAdminOpen(true);
+    return true;
+  };
   const [selectedProductDetails, setSelectedProductDetails] = useState(null);
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
 
@@ -846,6 +872,8 @@ export const CartProvider = ({ children }) => {
         isProductDetailsOpen,
         openProductDetails,
         closeProductDetails,
+        isAdmin,
+        openAdminConsole,
         isAdminOpen,
         setIsAdminOpen,
         toastMessage,

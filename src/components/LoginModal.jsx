@@ -263,9 +263,25 @@ export const LoginModal = () => {
       name: 'Rahul Sharma',
       email: 'rahul.sharma@freshmart.demo',
       phone: '9876543210',
+      role: 'customer',
+      isAdmin: false,
       authType: 'demo_prime',
     });
-    showToast('Logged in as Rahul Sharma (Prime) 🚀');
+    showToast('Logged in as Customer (Rahul Sharma) 🛒');
+    closeModal();
+  };
+
+  const handleAdminDemoLogin = () => {
+    login({
+      id: 'admin_master_01',
+      name: 'FreshMart Admin',
+      email: 'admin@freshmart.com',
+      phone: '9999999999',
+      role: 'admin',
+      isAdmin: true,
+      authType: 'admin_session',
+    });
+    showToast('🔑 Logged in as FreshMart Admin! 🛡️');
     closeModal();
   };
 
@@ -515,7 +531,31 @@ export const LoginModal = () => {
                       className="btn btn-social btn-demo-quick"
                       onClick={handleQuickDemoLogin}
                     >
-                      <span>⚡ 1-Click Quick Demo Login</span>
+                      <span>👤 Customer Demo Login</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn btn-social btn-admin-quick"
+                      onClick={handleAdminDemoLogin}
+                      style={{
+                        backgroundColor: '#0f172a',
+                        color: '#ffffff',
+                        border: '1px solid #334155',
+                        borderRadius: '10px',
+                        padding: '10px 16px',
+                        fontWeight: '700',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        marginTop: '8px',
+                        width: '100%',
+                      }}
+                    >
+                      <span>🔑 Admin Demo Login (Admin Console Access)</span>
                     </button>
                   </div>
                 </div>

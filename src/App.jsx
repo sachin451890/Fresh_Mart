@@ -26,6 +26,7 @@ export function App() {
     closeProductDetails,
     isAdminOpen,
     setIsAdminOpen,
+    isAdmin,
   } = useCart();
 
   return (
@@ -69,11 +70,13 @@ export function App() {
           onClose={closeProductDetails}
         />
 
-        {/* Admin Console Modal */}
-        <AdminDashboard
-          isOpen={isAdminOpen}
-          onClose={() => setIsAdminOpen(false)}
-        />
+        {/* Admin Console Modal (Guarded: Only for Admins) */}
+        {isAdmin && (
+          <AdminDashboard
+            isOpen={isAdminOpen}
+            onClose={() => setIsAdminOpen(false)}
+          />
+        )}
 
         {/* FreshMart AI Assistant Widget */}
         <AiShoppingAssistant />

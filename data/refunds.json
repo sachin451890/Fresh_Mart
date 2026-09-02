@@ -1,5 +1,41 @@
 [
   {
+    "refundId": "REF_1788365483947_7869",
+    "paymentIntentId": "pi_status_test_1788365483944",
+    "amount": 499,
+    "currency": "INR",
+    "customerEmail": "customer@freshmart.com",
+    "customerPhone": "",
+    "reason": "ACCIDENTAL_DEBIT",
+    "refundStatus": "PROCESSING",
+    "initiatedAt": "2026-09-02T16:11:23.947Z",
+    "estimatedRefundBy": "2026-09-03T16:11:23.947Z",
+    "refundMethod": "ORIGINAL_PAYMENT_SOURCE (Bank / UPI / Card)",
+    "referenceRRN": "RRN697396346088",
+    "gatewayDetails": {
+      "provider": "FreshMart Auto-Refund Reconciler",
+      "slaHours": 24
+    }
+  },
+  {
+    "refundId": "REF_1788365483936_7130",
+    "paymentIntentId": "pi_test_fail_1788365483935",
+    "amount": 350,
+    "currency": "INR",
+    "customerEmail": "test.user@freshmart.com",
+    "customerPhone": "",
+    "reason": "BANK_SERVER_DOWN_OR_NETWORK_DROP",
+    "refundStatus": "PROCESSING",
+    "initiatedAt": "2026-09-02T16:11:23.936Z",
+    "estimatedRefundBy": "2026-09-03T16:11:23.936Z",
+    "refundMethod": "ORIGINAL_PAYMENT_SOURCE (Bank / UPI / Card)",
+    "referenceRRN": "RRN942304066106",
+    "gatewayDetails": {
+      "provider": "FreshMart Auto-Refund Reconciler",
+      "slaHours": 24
+    }
+  },
+  {
     "refundId": "REF_1788363409150_2558",
     "paymentIntentId": "pi_status_test_1788363409148",
     "amount": 499,
