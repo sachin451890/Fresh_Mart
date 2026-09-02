@@ -146,15 +146,31 @@ export const AiShoppingAssistant = () => {
     setIsLoading(true);
 
     try {
+      let response;
       const apiEndpoint = import.meta.env.VITE_API_BASE_URL
         ? `${import.meta.env.VITE_API_BASE_URL}/ai/chat`
         : '/api/ai/chat';
 
-      const response = await fetch(apiEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: reqBody,
-      });
+      try {
+        response = await fetch(apiEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: reqBody,
+        });
+        if (!response.ok && window.location.hostname === 'localhost') {
+          throw new Error('Try direct port 3000 fallback');
+        }
+      } catch (primaryErr) {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          response = await fetch('http://localhost:3000/api/ai/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: reqBody,
+          });
+        } else {
+          throw primaryErr;
+        }
+      }
 
       const data = await response.json();
       setIsLoading(false);
