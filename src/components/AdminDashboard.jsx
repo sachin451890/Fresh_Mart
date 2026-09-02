@@ -6,7 +6,6 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const { pastOrders, showToast } = useCart();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'products' | 'orders' | 'inventory'
   const [productList, setProductList] = useState(initialProducts);
-  const [editingProduct, setEditingProduct] = useState(null);
   const [stockFilter, setStockFilter] = useState('all');
 
   if (!isOpen) return null;
@@ -46,7 +45,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
               <p style={styles.headerSubtitle}>Catalog, Inventory & Order Fulfillment Center</p>
             </div>
           </div>
-          <button className="modal-close" onClick={onClose} style={styles.closeBtn}>
+          <button className="modal-close" onClick={onClose} style={styles.closeBtn} title="Close Admin Console">
             ✕
           </button>
         </div>
@@ -145,7 +144,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                           </div>
                         </td>
                         <td style={styles.td}>{prod.category}</td>
-                        <td style={styles.td}><strong>₹{prod.price}</strong></td>
+                        <td style={styles.td}><strong style={{ color: '#0f172a' }}>₹{prod.price}</strong></td>
                         <td style={styles.td}><span style={{ textDecoration: 'line-through', color: '#94a3b8' }}>₹{prod.mrp || prod.price}</span></td>
                         <td style={styles.td}>
                           <input
@@ -176,22 +175,28 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
             <div>
               <h4 style={{ margin: '0 0 16px 0', color: '#0f172a' }}>Recent Orders & Fulfillment Status</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {pastOrders.map((ord) => (
-                  <div key={ord.id} style={styles.orderCard}>
-                    <div style={styles.orderCardHeader}>
-                      <div>
-                        <strong>Order ID: {ord.id}</strong> • <span style={{ color: '#64748b' }}>{new Date(ord.createdAt).toLocaleString()}</span>
-                      </div>
-                      <div style={styles.orderAmountTag}>₹{ord.grandTotal}</div>
-                    </div>
-                    <div style={{ fontSize: '13px', color: '#334155', margin: '8px 0' }}>
-                      📍 <strong>Delivery Address:</strong> {ord.deliveryAddress || 'Express Dark Store Hub'}
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#64748b' }}>
-                      Payment Method: <strong>{ord.paymentMethod}</strong> • Items: {ord.items?.length || 0}
-                    </div>
+                {pastOrders.length === 0 ? (
+                  <div style={styles.emptyNotice}>
+                    📦 No orders placed yet. Orders will appear here in real-time as customers checkout!
                   </div>
-                ))}
+                ) : (
+                  pastOrders.map((ord) => (
+                    <div key={ord.id} style={styles.orderCard}>
+                      <div style={styles.orderCardHeader}>
+                        <div>
+                          <strong style={{ color: '#0f172a' }}>Order ID: {ord.id}</strong> • <span style={{ color: '#64748b' }}>{new Date(ord.createdAt || Date.now()).toLocaleString()}</span>
+                        </div>
+                        <div style={styles.orderAmountTag}>₹{ord.grandTotal}</div>
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#334155', margin: '8px 0' }}>
+                        📍 <strong>Delivery Address:</strong> {ord.deliveryAddress || 'Express Dark Store Hub'}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                        Payment Method: <strong>{ord.paymentMethod || 'Online Payment'}</strong> • Items: {ord.items?.length || 0}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -211,7 +216,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
                     .map((prod) => (
                       <div key={prod.id} style={styles.alertCard}>
                         <div>
-                          <strong>{prod.name}</strong> ({prod.category})
+                          <strong style={{ color: '#991b1b' }}>{prod.name}</strong> ({prod.category})
                           <div style={{ color: '#dc2626', fontSize: '13px', fontWeight: '700' }}>
                             Current Stock: {prod.stock || 5} units left
                           </div>
@@ -243,6 +248,10 @@ const styles = {
     maxHeight: '90vh',
     display: 'flex',
     flexDirection: 'column',
+    backgroundColor: '#ffffff',
+    color: '#0f172a',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+    border: '1px solid #e2e8f0',
   },
   headerBar: {
     display: 'flex',
@@ -251,6 +260,7 @@ const styles = {
     marginBottom: '20px',
     borderBottom: '1px solid #e2e8f0',
     paddingBottom: '16px',
+    backgroundColor: '#ffffff',
   },
   headerTitleRow: {
     display: 'flex',
@@ -269,7 +279,17 @@ const styles = {
     color: '#64748b',
   },
   closeBtn: {
-    fontSize: '18px',
+    fontSize: '16px',
+    backgroundColor: '#f1f5f9',
+    color: '#0f172a',
+    border: '1px solid #cbd5e1',
+    borderRadius: '50%',
+    width: '32px',
+    height: '32px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
   },
   tabBar: {
     display: 'flex',
@@ -278,6 +298,7 @@ const styles = {
     paddingBottom: '12px',
     borderBottom: '1px solid #f1f5f9',
     marginBottom: '20px',
+    backgroundColor: '#ffffff',
   },
   tabBtn: {
     padding: '10px 16px',
@@ -299,6 +320,8 @@ const styles = {
   contentArea: {
     overflowY: 'auto',
     flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
   },
   metricsGrid: {
     display: 'grid',
@@ -306,10 +329,11 @@ const styles = {
     gap: '16px',
   },
   metricCard: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
     border: '1px solid #e2e8f0',
     borderRadius: '14px',
     padding: '20px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
   },
   metricLabel: {
     fontSize: '13px',
@@ -334,27 +358,33 @@ const styles = {
     overflowX: 'auto',
     border: '1px solid #e2e8f0',
     borderRadius: '12px',
+    backgroundColor: '#ffffff',
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
     textAlign: 'left',
     fontSize: '13px',
+    backgroundColor: '#ffffff',
   },
   thRow: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#f8fafc',
     borderBottom: '1px solid #e2e8f0',
   },
   th: {
     padding: '12px 14px',
     fontWeight: '700',
     color: '#334155',
+    backgroundColor: '#f8fafc',
   },
   tr: {
     borderBottom: '1px solid #f1f5f9',
+    backgroundColor: '#ffffff',
   },
   td: {
     padding: '12px 14px',
+    backgroundColor: '#ffffff',
+    color: '#0f172a',
   },
   thumbImg: {
     width: '36px',
@@ -368,6 +398,8 @@ const styles = {
     borderRadius: '6px',
     border: '1px solid #cbd5e1',
     fontWeight: '600',
+    backgroundColor: '#ffffff',
+    color: '#0f172a',
   },
   restockBtn: {
     padding: '6px 12px',
@@ -380,10 +412,12 @@ const styles = {
     cursor: 'pointer',
   },
   orderCard: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
     border: '1px solid #e2e8f0',
     borderRadius: '12px',
     padding: '16px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+    color: '#0f172a',
   },
   orderCardHeader: {
     display: 'flex',
@@ -403,9 +437,10 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '14px 18px',
-    backgroundColor: '#fef2f2',
-    border: '1px solid #fecaca',
+    backgroundColor: '#fff5f5',
+    border: '1px solid #fed7d7',
     borderRadius: '12px',
+    color: '#991b1b',
   },
   emptyNotice: {
     padding: '24px',

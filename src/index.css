@@ -6469,4 +6469,28 @@ button, input, select {
   }
 }
 
+/* ==========================================================================
+   FreshMart Admin Console White Theme Overrides
+   ========================================================================== */
+.admin-modal-content {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.admin-modal-content h1,
+.admin-modal-content h2,
+.admin-modal-content h3,
+.admin-modal-content h4,
+.admin-modal-content h5,
+.admin-modal-content h6,
+.admin-modal-content p,
+.admin-modal-content span,
+.admin-modal-content td,
+.admin-modal-content th {
+  color: #0f172a !important;
+}
+
+
 
