@@ -10,6 +10,8 @@ import cartRoutes from './routes/cartRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import refundRoutes from './routes/refundRoutes.js';
+import { refundService } from './services/refundService.js';
 import { verifySupabaseAuth } from './middleware/authMiddleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -122,6 +124,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/refunds', refundRoutes);
 
 // Stripe Payment Intent API Route
 app.post('/api/create-stripe-payment-intent', async (req, res, next) => {

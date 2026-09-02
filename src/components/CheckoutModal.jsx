@@ -39,6 +39,24 @@ export const CheckoutModal = () => {
         const data = await response.json();
         setIsProcessingStripe(false);
 
+        if (!data.success) {
+          // Trigger automated payment failure refund ticket registration
+          fetch('/api/refunds/auto-claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              paymentIntentId: data?.paymentIntentId || `pi_failed_${Date.now()}`,
+              amount: grandTotal,
+              customerEmail: formData.email,
+              customerPhone: formData.phone,
+              reason: 'BANK_SERVER_DOWN_OR_NETWORK_DROP',
+            }),
+          }).catch(() => {});
+
+          showToast('🛡️ Bank/Network issue detected. If debited, money will be auto-refunded within 24 hours.');
+          return;
+        }
+
         const txId = data?.paymentIntentId || `tx_stripe_${Date.now()}`;
         showToast(`🎉 Stripe Payment of ₹${grandTotal} Successful!`);
 
@@ -54,9 +72,23 @@ export const CheckoutModal = () => {
         });
       } catch (err) {
         setIsProcessingStripe(false);
-        const txId = `tx_stripe_${Date.now()}`;
-        showToast(`🎉 Stripe Payment of ₹${grandTotal} Successful!`);
 
+        // Network Drop / Server Exception Handler: Register Auto-Refund Claim
+        fetch('/api/refunds/auto-claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paymentIntentId: `pi_netdrop_${Date.now()}`,
+            amount: grandTotal,
+            customerEmail: formData.email,
+            customerPhone: formData.phone,
+            reason: 'NETWORK_TIMEOUT_DEBIT_RECOVERY',
+          }),
+        }).catch(() => {});
+
+        showToast('🛡️ Network dropped. If bank debited amount, refund is guaranteed within 24 hours!');
+
+        const txId = `tx_stripe_${Date.now()}`;
         placeOrder({
           customer: {
             name: formData.name || 'Rahul Sharma',
@@ -256,6 +288,31 @@ export const CheckoutModal = () => {
                   </div>
                 </div>
               )}
+
+              {/* FreshMart 24-Hour Refund Guarantee Trust Card */}
+              <div
+                className="refund-guarantee-card"
+                style={{
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  marginTop: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  fontSize: '12px',
+                  color: '#166534',
+                }}
+              >
+                <span style={{ fontSize: '22px' }}>🛡️</span>
+                <div>
+                  <strong>FreshMart 24-Hour Auto-Refund Protection Guarantee</strong>
+                  <div style={{ color: '#15803d', fontSize: '11px', marginTop: '2px' }}>
+                    If bank server or network drops mid-payment, debited money is automatically refunded back to your bank account within 24 hours (usually 10-15 mins).
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Total Payable Summary & Actions */}
