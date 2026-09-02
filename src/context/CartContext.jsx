@@ -182,7 +182,8 @@ export const CartProvider = ({ children }) => {
       (user.role === 'admin' ||
         user.isAdmin === true ||
         (user.email &&
-          (user.email.toLowerCase().includes('admin') ||
+          (user.email.toLowerCase() === 'sachin@freshmart.com' ||
+            user.email.toLowerCase().includes('admin') ||
             user.email.toLowerCase() === 'sachin451890@gmail.com' ||
             user.email.toLowerCase() === 'admin@freshmart.com' ||
             user.email.toLowerCase() === 'admin@freshmart.in')))

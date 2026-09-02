@@ -16,10 +16,11 @@ export const LoginModal = () => {
     supabaseResetPasswordForEmail,
     authModalView,
     setAuthModalView,
+    setIsAdminOpen,
     showToast,
   } = useCart();
 
-  // Mode: 'login' | 'signup' | 'forgot_password'
+  // Mode: 'login' | 'signup' | 'forgot_password' | 'admin_login'
   const [viewMode, setViewMode] = useState(authModalView || 'login');
 
   // Synchronize view mode with context and URL hash
@@ -42,6 +43,9 @@ export const LoginModal = () => {
       } else if (hash === '#forgot-password') {
         setViewMode('forgot_password');
         setIsLoginOpen(true);
+      } else if (hash === '#admin-login' || hash === '#admin') {
+        setViewMode('admin_login');
+        setIsLoginOpen(true);
       }
     };
 
@@ -59,6 +63,11 @@ export const LoginModal = () => {
   const [rememberMe, setRememberMe] = useState(() => {
     return !!localStorage.getItem('freshmart_remember_email');
   });
+
+  // Form Fields - Admin Login
+  const [adminEmail, setAdminEmail] = useState('sachin@freshmart.com');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
 
   // Form Fields - Signup
   const [signupName, setSignupName] = useState('');
@@ -91,6 +100,8 @@ export const LoginModal = () => {
       window.history.replaceState(null, '', '#create-account');
     } else if (newMode === 'forgot_password') {
       window.history.replaceState(null, '', '#forgot-password');
+    } else if (newMode === 'admin_login') {
+      window.history.replaceState(null, '', '#admin-login');
     }
   };
 
@@ -120,7 +131,7 @@ export const LoginModal = () => {
   };
 
   // =========================================================================
-  // 1. Handle Login Submit
+  // 1. Handle Customer Login Submit
   // =========================================================================
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -128,7 +139,7 @@ export const LoginModal = () => {
     setSuccessMsg('');
 
     const emailVal = loginEmail.trim();
-    const pwdVal = loginPassword.trim();
+    const pwdVal = loginPassword;
 
     if (!emailVal || !validateEmail(emailVal)) {
       setErrorMsg('Please enter a valid email address.');
@@ -136,6 +147,24 @@ export const LoginModal = () => {
     }
     if (!pwdVal) {
       setErrorMsg('Please enter your password.');
+      return;
+    }
+
+    // Direct Admin verification if entering official Admin ID and Password
+    if (emailVal.toLowerCase() === 'sachin@freshmart.com' && pwdVal === 'sachinksk@2026') {
+      const adminUser = {
+        id: 'admin_sachin_01',
+        name: 'Sachin (Super Admin)',
+        email: 'sachin@freshmart.com',
+        phone: '9999999999',
+        role: 'admin',
+        isAdmin: true,
+        authType: 'admin_portal',
+      };
+      login(adminUser);
+      showToast('🔑 Admin Authentication Verified! Welcome Sachin 🛡️');
+      setIsLoginOpen(false);
+      setIsAdminOpen(true);
       return;
     }
 
@@ -165,6 +194,45 @@ export const LoginModal = () => {
       } else {
         setErrorMsg(res.error || 'Invalid email or password.');
       }
+    }
+  };
+
+  // =========================================================================
+  // 1.5 Handle Admin Credentials Submit
+  // =========================================================================
+  const handleAdminLoginSubmit = (e) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    const emailVal = adminEmail.trim().toLowerCase();
+    const pwdVal = adminPassword;
+
+    if (!emailVal) {
+      setErrorMsg('Please enter your Admin Email / ID.');
+      return;
+    }
+    if (!pwdVal) {
+      setErrorMsg('Please enter your Admin Password.');
+      return;
+    }
+
+    if (emailVal === 'sachin@freshmart.com' && pwdVal === 'sachinksk@2026') {
+      const adminUser = {
+        id: 'admin_sachin_01',
+        name: 'Sachin (Super Admin)',
+        email: 'sachin@freshmart.com',
+        phone: '9999999999',
+        role: 'admin',
+        isAdmin: true,
+        authType: 'admin_portal',
+      };
+      login(adminUser);
+      showToast('🔑 Admin Authentication Verified! Welcome Sachin 🛡️');
+      setIsLoginOpen(false);
+      setIsAdminOpen(true);
+    } else {
+      setErrorMsg('⛔ Access Denied! Invalid Admin ID or Password. Only authorized FreshMart Administrators can log in.');
     }
   };
 
@@ -566,7 +634,7 @@ export const LoginModal = () => {
                     <button
                       type="button"
                       className="btn btn-social btn-admin-quick"
-                      onClick={handleAdminDemoLogin}
+                      onClick={() => switchView('admin_login')}
                       style={{
                         backgroundColor: '#0f172a',
                         color: '#ffffff',
@@ -584,9 +652,98 @@ export const LoginModal = () => {
                         width: '100%',
                       }}
                     >
-                      <span>🔑 Admin Demo Login (Admin Console Access)</span>
+                      <span>🔑 FreshMart Admin Portal Login</span>
                     </button>
                   </div>
+                </div>
+              )}
+
+              {/* ========================================================
+                  VIEW 4: ADMIN PORTAL LOGIN FORM
+                  ======================================================== */}
+              {viewMode === 'admin_login' && (
+                <div className="auth-view-content auth-admin-view">
+                  <div className="auth-header-text">
+                    <h3 className="auth-title" style={{ color: '#0f172a' }}>🛡️ Admin Portal Authentication</h3>
+                    <p className="auth-subtitle">
+                      Restricted Access: Enter your official Admin ID and Password to unlock the Admin Console.
+                    </p>
+                  </div>
+
+                  {/* Feedback Messages */}
+                  {errorMsg && (
+                    <div className="auth-alert error">
+                      <span className="alert-icon">⚠️</span>
+                      <span>{errorMsg}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleAdminLoginSubmit} className="auth-form">
+                    {/* Admin Email */}
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="adminEmail">
+                        Admin Email / ID <span className="req">*</span>
+                      </label>
+                      <div className="input-with-icon">
+                        <span className="input-icon">👑</span>
+                        <input
+                          id="adminEmail"
+                          type="email"
+                          className="form-control"
+                          placeholder="sachin@freshmart.com"
+                          value={adminEmail}
+                          onChange={(e) => setAdminEmail(e.target.value)}
+                          autoComplete="email"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Admin Password */}
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="adminPassword">
+                        Admin Password <span className="req">*</span>
+                      </label>
+                      <div className="input-with-icon password-input-wrap">
+                        <span className="input-icon">🔑</span>
+                        <input
+                          id="adminPassword"
+                          type={showAdminPassword ? 'text' : 'password'}
+                          className="form-control"
+                          placeholder="Enter admin password"
+                          value={adminPassword}
+                          onChange={(e) => setAdminPassword(e.target.value)}
+                          autoComplete="current-password"
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="toggle-password-btn"
+                          onClick={() => setShowAdminPassword(!showAdminPassword)}
+                          title={showAdminPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showAdminPassword ? '👁️' : '👁️‍🗨️'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="btn btn-primary btn-block btn-auth-submit"
+                      style={{ backgroundColor: '#0f172a', borderColor: '#0f172a', marginTop: '12px' }}
+                    >
+                      <span>🔑 Verify & Unlock Admin Console</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-block"
+                      style={{ marginTop: '12px' }}
+                      onClick={() => switchView('login')}
+                    >
+                      ← Back to Customer Login
+                    </button>
+                  </form>
                 </div>
               )}
 
