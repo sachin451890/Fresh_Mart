@@ -145,6 +145,20 @@ export const AiShoppingAssistant = () => {
     if (!textToSend) setInputQuery('');
     setIsLoading(true);
 
+    const reqBody = JSON.stringify({
+      message: query,
+      userContext: {
+        user: user
+          ? {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+            }
+          : null,
+        cartItemsCount: cartItems.length,
+      },
+    });
+
     try {
       let response;
       const apiEndpoint = import.meta.env.VITE_API_BASE_URL
