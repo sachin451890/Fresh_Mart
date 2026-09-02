@@ -1713,7 +1713,7 @@ button, input, select {
 .app-footer {
   background: #0f172a;
   color: #cbd5e1;
-  padding: 48px 0 24px;
+  padding: 48px 0 95px !important;
   margin-top: 40px;
 }
 
@@ -6344,19 +6344,19 @@ button, input, select {
   position: fixed !important;
   bottom: 24px !important;
   right: 24px !important;
-  z-index: 999 !important;
+  z-index: 9999 !important;
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
-  background-color: #059669 !important;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
   color: #ffffff !important;
-  border: none !important;
+  border: 2px solid #6ee7b7 !important;
   border-radius: 30px !important;
   padding: 12px 20px !important;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
   font-size: 14px !important;
   cursor: pointer !important;
-  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   touch-action: manipulation !important;
   -webkit-tap-highlight-color: transparent !important;
