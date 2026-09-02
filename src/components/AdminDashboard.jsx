@@ -51,26 +51,30 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
         </div>
 
         {/* Tab Navigation */}
-        <div style={styles.tabBar}>
+        <div style={styles.tabBar} className="admin-tab-bar">
           <button
+            className={`admin-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
             style={{ ...styles.tabBtn, ...(activeTab === 'overview' ? styles.activeTabBtn : {}) }}
             onClick={() => setActiveTab('overview')}
           >
             📊 Sales Overview
           </button>
           <button
+            className={`admin-tab-btn ${activeTab === 'products' ? 'active' : ''}`}
             style={{ ...styles.tabBtn, ...(activeTab === 'products' ? styles.activeTabBtn : {}) }}
             onClick={() => setActiveTab('products')}
           >
             🍎 Catalog Management ({productList.length})
           </button>
           <button
+            className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
             style={{ ...styles.tabBtn, ...(activeTab === 'orders' ? styles.activeTabBtn : {}) }}
             onClick={() => setActiveTab('orders')}
           >
             📦 Live Orders ({pastOrders.length})
           </button>
           <button
+            className={`admin-tab-btn ${activeTab === 'inventory' ? 'active' : ''}`}
             style={{ ...styles.tabBtn, ...(activeTab === 'inventory' ? styles.activeTabBtn : {}) }}
             onClick={() => setActiveTab('inventory')}
           >
